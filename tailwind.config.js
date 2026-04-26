@@ -15,6 +15,14 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            // ADD YOUR CUSTOM BRAND COLORS HERE
+            colors: {
+                brand: {
+                    navy: '#003761',  // The dark navy for active/hover states
+                    blue: '#159cdb',  // The bright blue for accents/logo
+                    yellow: '#fcb503', // The yellow for the logo
+                }
+            }
         },
     },
 

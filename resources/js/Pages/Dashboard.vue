@@ -1,30 +1,20 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminDashboard from '@/Pages/admin/AdminDashboard.vue';
+
+// 1. Get user role from Inertia Auth props. 
+// 💡 Mentor Note: We default to 'admin' right now so you can see it working before we setup the database.
+const user = usePage().props.auth.user;
+const role = user?.role || 'hr_admin'; 
 </script>
 
 <template>
+
     <Head title="Dashboard" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <h2
-                class="text-xl font-semibold leading-tight text-gray-800"
-            >
-                Dashboard
-            </h2>
-        </template>
+    <AppLayout>
+        <AdminDashboard v-if="role === 'hr_admin'" />
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div
-                    class="overflow-hidden bg-white shadow-sm sm:rounded-lg"
-                >
-                    <div class="p-6 text-gray-900">
-                        You're logged in!
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    </AppLayout>
 </template>
