@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
-import { LayoutDashboard, Package, CheckSquare, Users, X } from 'lucide-vue-next';
+import { LayoutDashboard, Package, CheckSquare, Users, Building, X } from 'lucide-vue-next';
 import NavItem from '@/Components/Layout/NavItem.vue';
 
 const props = defineProps({
@@ -9,35 +9,36 @@ const props = defineProps({
 });
 const emit = defineEmits(['close-mobile']);
 
-
 const roleLabels = {
     requestor: 'Requestor',
     approver: 'Approver',
     hr_admin: 'HR Admin'
 };
 
+const page = usePage();
+const user = computed(() => page.props.auth?.user);
+const userRole = computed(() => user.value?.role ?? 'requestor');
+
 const formattedUserRole = computed(() => {
     return roleLabels[userRole.value] || userRole.value;
 });
 
-const page = usePage();
-
-const user = computed(() => page.props.auth?.user);
-const userRole = computed(() => user.value?.role ?? 'requestor');
-
+// Replace '#' with actual routes and made 'active' dynamic
 const allMenuOptions = [
     { name: 'Dashboard', href: route('dashboard'), active: route().current('dashboard'), icon: LayoutDashboard, roles: ['requestor', 'approver', 'hr_admin'] },
-    { name: 'Supplies Catalog', href: '#', active: false, icon: Package, roles: ['requestor'] },
-    { name: 'Approval Queue', href: '#', active: false, icon: CheckSquare, roles: ['approver'] },
-    { name: 'User Management', href: '#', active: false, icon: Users, roles: ['hr_admin'] },
-    { name: 'Departments', href: '#', active: false, icon: Users, roles: ['hr_admin'] },
-    { name: 'Supplies ', href: '#', active: false, icon: Package, roles: ['hr_admin'] },
+    { name: 'Supplies Catalog', href: '#', active: route().current('supplies.catalog'), icon: Package, roles: ['requestor'] },
+    { name: 'Approval Queue', href: '#', active: route().current('approvals.queue'), icon: CheckSquare, roles: ['approver'] },
+
+    // Admin Routes Connected Here
+    { name: 'Departments', href: route('admin.departments.index'), active: route().current('admin.departments.*'), icon: Building, roles: ['hr_admin'] },
+    { name: 'User Management', href: route('admin.users.index'), active: route().current('admin.users.*'), icon: Users, roles: ['hr_admin'] },
 ];
 
 const filteredNavigation = computed(() => {
     return allMenuOptions.filter(item => item.roles.includes(userRole.value));
 });
 </script>
+
 
 <template>
     <div v-show="isMobileOpen" class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm lg:hidden transition-opacity"
