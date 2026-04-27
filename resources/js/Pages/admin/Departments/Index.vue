@@ -7,6 +7,7 @@ import Modal from '@/Components/Modal.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
+import PageHeader from '@/Components/PageHeader.vue'
 
 const props = defineProps({
     departments: Array,
@@ -192,7 +193,10 @@ const submit = () => {
     <Head title="Departments" />
 
     <AppLayout>
-        <div class="w-full mx-auto px-4 sm:px-6 lg:px-12 py-8 relative">
+        <div class="relative">
+
+            <PageHeader title="Department Management" description="Create and manage departments." />
+
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                     <div

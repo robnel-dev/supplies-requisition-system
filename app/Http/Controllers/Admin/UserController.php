@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Models\User;
 use App\Models\Department;
-use App\Http\Services\UserService;
+use App\Services\UserService;
 use Inertia\Inertia;
 
 class UserController extends Controller

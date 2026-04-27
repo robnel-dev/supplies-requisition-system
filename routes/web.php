@@ -20,26 +20,29 @@ Route::redirect('/', '/login');
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
 
-    // General Dashboard
+    // SHARED ROUTES (Available to everyone logged in)
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        return inertia('Dashboard');
     })->name('dashboard');
 
-    /*
-     * --------------------------------------------------------------------
-     * HR Admin Module Routes
-     * --------------------------------------------------------------------
-     */
-    Route::prefix('admin')->name('admin.')->group(function () {
-        
-        // Department Management (Creates .index and .store routes)
-        Route::resource('departments', DepartmentController::class)->only(['index', 'store']);
 
-        // User Management (Creates .index and .store routes)
-        Route::resource('users', UserController::class)->only(['index', 'store']);
-        
+    // HR ADMIN ONLY ROUTES
+    // We add ->name('admin.') so that 'departments' becomes 'admin.departments.index'
+    // We add ->prefix('admin') so the URL becomes /admin/departments
+    Route::middleware(['role:hr_admin'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::resource('departments', DepartmentController::class);
+            Route::resource('users', UserController::class);
+        });
+
+
+    // APPROVER ONLY ROUTES
+    Route::middleware(['role:approver'])->group(function () {
+        // Route::get('/approvals', [ApprovalController::class, 'index'])->name('approvals.index');
     });
 });
 

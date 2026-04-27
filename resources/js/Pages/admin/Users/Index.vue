@@ -7,6 +7,7 @@ import Modal from '@/Components/Modal.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
+import PageHeader from '@/Components/PageHeader.vue';
 
 const props = defineProps({
     users: Array,
@@ -52,7 +53,7 @@ const closeModal = () => {
 
 const submit = () => {
     form.post(route('admin.users.store'), {
-        // 💡 NEW: Trigger the toast ONLY when Inertia says the request was a full success
+        //  Trigger the toast ONLY when Inertia says the request was a full success
         onSuccess: () => {
             closeModal();
             showSuccessToast('User successfully created!');
@@ -63,14 +64,19 @@ const submit = () => {
 </script>
 
 <template>
+
     <Head title="Users" />
 
     <AppLayout>
-        <div class="w-full mx-auto px-4 sm:px-6 lg:px-12 py-8 relative">
-            
+
+        <div class="relative">
+
+            <PageHeader title="User Management" description="Create and manage system users." />
+
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                    <div class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                    <div
+                        class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
                         <div class="p-3 rounded-full bg-[#1369a8]/10 text-[#1369a8] mr-4">
                             <UsersIcon class="w-6 h-6" />
                         </div>
@@ -80,7 +86,8 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <div class="bg-white border-l-4 border-emerald-600 shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                    <div
+                        class="bg-white border-l-4 border-emerald-600 shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
                         <div class="p-3 rounded-full bg-emerald-50 text-emerald-600 mr-4">
                             <UserCheck class="w-6 h-6" />
                         </div>
@@ -90,8 +97,9 @@ const submit = () => {
                         </div>
                     </div>
                 </div>
-                
-                <button @click="openModal" class="inline-flex items-center justify-center px-5 py-3 bg-[#1d62c7] hover:bg-[#1369a8] text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:ring-2 focus:ring-[#1d62c7]/50 focus:outline-none whitespace-nowrap">
+
+                <button @click="openModal"
+                    class="inline-flex items-center justify-center px-5 py-3 bg-[#1d62c7] hover:bg-[#1369a8] text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:ring-2 focus:ring-[#1d62c7]/50 focus:outline-none whitespace-nowrap">
                     <Plus class="w-5 h-5 mr-2" />
                     Create User
                 </button>
@@ -118,9 +126,9 @@ const submit = () => {
                                 <td class="px-6 py-4">
                                     <span :class="[
                                         'px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase',
-                                        user.role === 'hr_admin' ? 'bg-[#1369a8] text-white' : 
-                                        user.role === 'approver' ? 'bg-brand-yellow/20 text-yellow-800' : 
-                                        'bg-blue-50 text-blue-700'
+                                        user.role === 'hr_admin' ? 'bg-[#1369a8] text-white' :
+                                            user.role === 'approver' ? 'bg-brand-yellow/20 text-yellow-800' :
+                                                'bg-blue-50 text-blue-700'
                                     ]">
                                         {{ user.role.replace('_', ' ') }}
                                     </span>
@@ -130,17 +138,22 @@ const submit = () => {
                                 </td>
                                 <td class="px-6 py-4 text-gray-600">{{ user.cost_center }}</td>
                                 <td class="px-6 py-4 text-center">
-                                    <span v-if="user.is_active" class="px-2 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-md text-[11px] font-bold uppercase tracking-wider">Active</span>
-                                    <span v-else class="px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded-md text-[11px] font-bold uppercase tracking-wider">Disabled</span>
+                                    <span v-if="user.is_active"
+                                        class="px-2 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-md text-[11px] font-bold uppercase tracking-wider">Active</span>
+                                    <span v-else
+                                        class="px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded-md text-[11px] font-bold uppercase tracking-wider">Disabled</span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <button class="text-[#1369a8] hover:text-[#0b426e] transition-colors mr-3" title="Edit User">
+                                    <button class="text-[#1369a8] hover:text-[#0b426e] transition-colors mr-3"
+                                        title="Edit User">
                                         <Edit class="w-4 h-4" />
                                     </button>
-                                    <button class="text-orange-500 hover:text-orange-600 transition-colors mr-3" title="Change Password">
+                                    <button class="text-orange-500 hover:text-orange-600 transition-colors mr-3"
+                                        title="Change Password">
                                         <Key class="w-4 h-4" />
                                     </button>
-                                    <button class="text-red-500 hover:text-red-700 transition-colors" title="Disable/Delete">
+                                    <button class="text-red-500 hover:text-red-700 transition-colors"
+                                        title="Disable/Delete">
                                         <Trash2 class="w-4 h-4" />
                                     </button>
                                 </td>
@@ -171,17 +184,20 @@ const submit = () => {
                 <form @submit.prevent="submit" class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <InputLabel for="name" value="Account Name" />
-                        <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
+                        <TextInput id="name" v-model="form.name" type="text"
+                            class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
                         <InputError :message="form.errors.name" class="mt-2" />
                     </div>
                     <div>
                         <InputLabel for="email" value="Email Address" />
-                        <TextInput id="email" v-model="form.email" type="email" class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
+                        <TextInput id="email" v-model="form.email" type="email"
+                            class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
                         <InputError :message="form.errors.email" class="mt-2" />
                     </div>
                     <div>
                         <InputLabel for="role" value="User Role" />
-                        <select id="role" v-model="form.role" class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
+                        <select id="role" v-model="form.role"
+                            class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
                             <option value="requestor">Requestor</option>
                             <option value="approver">Approver</option>
                             <option value="hr_admin">HR Admin</option>
@@ -190,7 +206,8 @@ const submit = () => {
                     </div>
                     <div>
                         <InputLabel for="department_id" value="Department / Area" />
-                        <select id="department_id" v-model="form.department_id" class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
+                        <select id="department_id" v-model="form.department_id"
+                            class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
                             <option value="">Select Department</option>
                             <option v-for="dept in departments" :key="dept.id" :value="dept.id">
                                 {{ dept.name }} ({{ dept.code }})
@@ -200,24 +217,29 @@ const submit = () => {
                     </div>
                     <div class="md:col-span-2">
                         <InputLabel for="cost_center" value="Cost Center" />
-                        <TextInput id="cost_center" v-model="form.cost_center" type="text" class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
+                        <TextInput id="cost_center" v-model="form.cost_center" type="text"
+                            class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
                         <InputError :message="form.errors.cost_center" class="mt-2" />
                     </div>
                     <div>
                         <InputLabel for="password" value="Password" />
-                        <TextInput id="password" v-model="form.password" type="password" class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
+                        <TextInput id="password" v-model="form.password" type="password"
+                            class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
                         <InputError :message="form.errors.password" class="mt-2" />
                     </div>
                     <div>
                         <InputLabel for="password_confirmation" value="Confirm Password" />
-                        <TextInput id="password_confirmation" v-model="form.password_confirmation" type="password" class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
+                        <TextInput id="password_confirmation" v-model="form.password_confirmation" type="password"
+                            class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
                     </div>
-                    
+
                     <div class="mt-4 pt-5 flex justify-end space-x-3 md:col-span-2 border-t border-gray-200">
-                        <button type="button" @click="closeModal" class="inline-flex items-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors focus:ring-2 focus:ring-red-500 focus:outline-none">
+                        <button type="button" @click="closeModal"
+                            class="inline-flex items-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors focus:ring-2 focus:ring-red-500 focus:outline-none">
                             <X class="w-4 h-4 mr-2" /> Cancel
                         </button>
-                        <button type="submit" :disabled="form.processing" class="inline-flex items-center px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors focus:ring-2 focus:ring-green-500 focus:outline-none disabled:opacity-50">
+                        <button type="submit" :disabled="form.processing"
+                            class="inline-flex items-center px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors focus:ring-2 focus:ring-green-500 focus:outline-none disabled:opacity-50">
                             <Check class="w-4 h-4 mr-2" /> Create Record
                         </button>
                     </div>
@@ -225,20 +247,20 @@ const submit = () => {
             </div>
         </Modal>
 
-        <Transition
-            enter-active-class="transform ease-out duration-300 transition"
+        <Transition enter-active-class="transform ease-out duration-300 transition"
             enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-4"
             enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
-            leave-active-class="transition ease-in duration-200"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
-        >
-            <div v-if="toast.show" class="fixed top-6 right-6 z-[100] flex items-center w-full max-w-sm p-4 space-x-3 text-gray-800 bg-white border-l-4 border-green-500 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
-                <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-600 bg-green-100 rounded-lg">
+            leave-active-class="transition ease-in duration-200" leave-from-class="opacity-100"
+            leave-to-class="opacity-0">
+            <div v-if="toast.show"
+                class="fixed top-6 right-6 z-[100] flex items-center w-full max-w-sm p-4 space-x-3 text-gray-800 bg-white border-l-4 border-green-500 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
+                <div
+                    class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-600 bg-green-100 rounded-lg">
                     <Check class="w-5 h-5" />
                 </div>
                 <div class="text-sm font-bold">{{ toast.message }}</div>
-                <button @click="toast.show = false" class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 items-center justify-center transition-colors">
+                <button @click="toast.show = false"
+                    class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 items-center justify-center transition-colors">
                     <X class="w-4 h-4" />
                 </button>
             </div>

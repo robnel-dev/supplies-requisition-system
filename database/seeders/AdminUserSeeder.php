@@ -13,9 +13,9 @@ class AdminUserSeeder extends Seeder
     {
         // 1. Create a default department FIRST so the user has a valid department_id
         $department = Department::firstOrCreate(
-            ['code' => 'HRD'], // Search by code
+            ['code' => 'ADM'], // Search by code
             [
-                'name' => 'Human Resources',
+                'name' => 'Administrator',
                 'type' => 'head_office',
             ]
         );

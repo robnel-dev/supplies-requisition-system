@@ -1,5 +1,6 @@
 <script setup>
 import { Users, Package, FileText, CheckCircle } from 'lucide-vue-next';
+import PageHeader from '@/Components/PageHeader.vue'
 
 // Placeholder stats for the admin. Later, we'll pass these via Inertia props.
 const stats = [
@@ -11,10 +12,7 @@ const stats = [
 
 <template>
     <div>
-        <div class="mb-6">
-            <h2 class="text-2xl font-black text-brand-navy tracking-tight">Admin Dashboard</h2>
-            <p class="mt-1 text-sm text-gray-500">System overview and pending releases</p>
-        </div>
+        <PageHeader title="Admin Dashboard" description="System overview and pending releases." />
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div v-for="stat in stats" :key="stat.label"

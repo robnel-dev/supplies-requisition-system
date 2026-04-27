@@ -1,8 +1,10 @@
 <script setup>
+import { ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { Menu, Bell, LogOut } from 'lucide-vue-next';
 
 const emit = defineEmits(['open-mobile-menu']);
+const hasUnreadNotifications = ref(false);
 </script>
 
 <template>

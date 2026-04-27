@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreDepartmentRequest;
 use App\Models\Department;
-use App\Http\Services\DepartmentService;
+use App\Services\DepartmentService;
 use Inertia\Inertia;
 
 class DepartmentController extends Controller

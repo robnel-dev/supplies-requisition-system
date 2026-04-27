@@ -1,7 +1,7 @@
 <script setup>
 import { Head, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import AdminDashboard from '@/Pages/admin/AdminDashboard.vue';
+import AdminDashboard from '@/Pages/Admin/AdminDashboard.vue';
 
 // 1. Get user role from Inertia Auth props. 
 // 💡 Mentor Note: We default to 'admin' right now so you can see it working before we setup the database.

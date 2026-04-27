@@ -32,7 +32,17 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'role' => $request->user()->role,
+                    // Helper flags for Vue templates
+                    'can' => [
+                        'manage_system' => $request->user()->role === 'hr_admin',
+                        'approve_requests' => $request->user()->role === 'approver',
+                        'is_employee' => $request->user()->role === 'requestor',
+                    ]
+                ] : null,
             ],
         ];
     }
