@@ -1,7 +1,8 @@
 <script setup>
 import { computed } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
-import { LayoutDashboard, Package, CheckSquare, Users, Building, X } from 'lucide-vue-next';
+// Added 'Archive' icon for Supplies Management
+import { LayoutDashboard, Package, CheckSquare, Users, Building, X, BaggageClaim  } from 'lucide-vue-next';
 import NavItem from '@/Components/Layout/NavItem.vue';
 
 const props = defineProps({
@@ -23,13 +24,14 @@ const formattedUserRole = computed(() => {
     return roleLabels[userRole.value] || userRole.value;
 });
 
-// Replace '#' with actual routes and made 'active' dynamic
+
 const allMenuOptions = [
     { name: 'Dashboard', href: route('dashboard'), active: route().current('dashboard'), icon: LayoutDashboard, roles: ['requestor', 'approver', 'hr_admin'] },
     { name: 'Supplies Catalog', href: '#', active: route().current('supplies.catalog'), icon: Package, roles: ['requestor'] },
     { name: 'Approval Queue', href: '#', active: route().current('approvals.queue'), icon: CheckSquare, roles: ['approver'] },
 
     // Admin Routes Connected Here
+    { name: 'Supplies Management', href: route('admin.supplies.index'), active: route().current('admin.supplies.*'), icon: BaggageClaim , roles: ['hr_admin'] },
     { name: 'Departments', href: route('admin.departments.index'), active: route().current('admin.departments.*'), icon: Building, roles: ['hr_admin'] },
     { name: 'User Management', href: route('admin.users.index'), active: route().current('admin.users.*'), icon: Users, roles: ['hr_admin'] },
 ];
@@ -38,7 +40,6 @@ const filteredNavigation = computed(() => {
     return allMenuOptions.filter(item => item.roles.includes(userRole.value));
 });
 </script>
-
 
 <template>
     <div v-show="isMobileOpen" class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm lg:hidden transition-opacity"

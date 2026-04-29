@@ -12,7 +12,7 @@ const stats = [
 
 <template>
     <div>
-        <PageHeader title="Admin Dashboard" description="System overview and pending releases." />
+        <PageHeader title="Admin Dashboard" description="System overview and pending releases" />
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div v-for="stat in stats" :key="stat.label"
