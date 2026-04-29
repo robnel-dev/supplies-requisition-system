@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Department;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -16,19 +17,22 @@ class UserFactory extends Factory
      */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            // Default password for all seeded users 
+            'password' => static::$password ??= Hash::make('it@guess'),
             'remember_token' => Str::random(10),
+            
+            // Custom System Fields
+            'role' => fake()->randomElement(['requestor', 'approver']),
+            // Assigns a random department ID from the ones generated
+            'department_id' => Department::inRandomOrder()->first()->id ?? Department::factory(),
+            'cost_center' => fake()->numberBetween(10000, 99999),
+            'is_active' => true,
         ];
     }
 

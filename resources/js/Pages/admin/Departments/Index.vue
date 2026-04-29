@@ -1,13 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { Plus, X, Check, Building2, Users, Edit, Trash2, ChevronDown } from 'lucide-vue-next';
+import { Plus, X, Check, Building2, Users, Edit, Trash2, ChevronDown, AlertTriangle } from 'lucide-vue-next';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
-import PageHeader from '@/Components/PageHeader.vue'
+import PageHeader from '@/Components/PageHeader.vue';
 
 const props = defineProps({
     departments: Array,
@@ -18,51 +18,51 @@ const totalAssignedUsers = computed(() => {
     return props.departments.reduce((total, dept) => total + (dept.users_count || 0), 0);
 });
 
+// --- State Management ---
 const isModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
+const isEditMode = ref(false);
+const editingId = ref(null);
+const departmentToDelete = ref(null);
 
-//  Toast State Management
+// --- Toast State Management ---
 const toast = ref({
     show: false,
-    message: ''
+    message: '',
+    type: 'success'
 });
 
-const showSuccessToast = (message) => {
-    toast.value = { show: true, message };
-    // Auto-hide the toast after 3 seconds
+const showToast = (message, type = 'success') => {
+    toast.value = { show: true, message, type };
     setTimeout(() => {
         toast.value.show = false;
     }, 3000);
 };
 
-const form = useForm({
+// Define initial form state for clean resets
+const initialFormState = {
     name: '',
     code: '',
     type: 'head_office',
-});
+};
 
+const form = useForm({ ...initialFormState });
+
+// --- Predefined Departments Data ---
 const predefinedDepartments = [
-    { code: 'HHR', name: 'Human Resources' },
-    { code: 'HIT', name: 'Information Technology' },
-    { code: 'HAC', name: 'Accounting' },
-    { code: 'HEO', name: 'Executive Office' },
-    { code: 'HAU', name: 'Audit' },
-    { code: 'HTR', name: 'Treasury' },
-    { code: 'HWA', name: 'Warehouse' },
-    { code: 'HAS', name: 'Sales Operations' },
-    { code: 'HVM', name: 'Visual Merchandising' },
-    { code: 'HMS', name: 'Marketing' },
-    { code: 'HPS', name: 'Purchasing' },
-    { code: 'HLP', name: 'Loss Prevention' },
-    { code: 'HPB', name: 'Planning & Budgeting' },
-    { code: 'HLD', name: 'Learning & Development' },
-    { code: 'Area 1', name: 'South Luzon' },
-    { code: 'Area 2', name: 'North Luzon' },
-    { code: 'Area 3', name: 'NCR 1' },
-    { code: 'Area 4', name: 'NCR 2' },
-    { code: 'Area 5', name: 'Visayas' },
-    { code: 'Area 6', name: 'Mindanao' }
+    { code: 'HHR', name: 'Human Resources' }, { code: 'HIT', name: 'Information Technology' },
+    { code: 'HAC', name: 'Accounting' }, { code: 'HEO', name: 'Executive Office' },
+    { code: 'HAU', name: 'Audit' }, { code: 'HTR', name: 'Treasury' },
+    { code: 'HWA', name: 'Warehouse' }, { code: 'HAS', name: 'Sales Operations' },
+    { code: 'HVM', name: 'Visual Merchandising' }, { code: 'HMS', name: 'Marketing' },
+    { code: 'HPS', name: 'Purchasing' }, { code: 'HLP', name: 'Loss Prevention' },
+    { code: 'HPB', name: 'Planning & Budgeting' }, { code: 'HLD', name: 'Learning & Development' },
+    { code: 'Area 1', name: 'South Luzon' }, { code: 'Area 2', name: 'North Luzon' },
+    { code: 'Area 3', name: 'NCR 1' }, { code: 'Area 4', name: 'NCR 2' },
+    { code: 'Area 5', name: 'Visayas' }, { code: 'Area 6', name: 'Mindanao' }
 ];
 
+// --- Dropdown Logic ---
 const showCodeDropdown = ref(false);
 const showNameDropdown = ref(false);
 const codeDropdownRef = ref(null);
@@ -164,7 +164,35 @@ const handleNameKeydown = (e) => {
     }
 };
 
-const openModal = () => isModalOpen.value = true;
+// --- CRUD Actions ---
+
+const openModal = () => {
+    isEditMode.value = false;
+    editingId.value = null;
+    
+    // Explicitly set defaults back to empty before resetting
+    form.defaults(initialFormState);
+    form.reset();
+    form.clearErrors();
+    
+    isModalOpen.value = true;
+};
+
+const openEditModal = (dept) => {
+    isEditMode.value = true;
+    editingId.value = dept.id;
+    
+    // Explicitly set defaults to the selected record so cancel/reset works properly
+    form.defaults({
+        name: dept.name,
+        code: dept.code,
+        type: dept.type,
+    });
+    form.reset();
+    form.clearErrors();
+    
+    isModalOpen.value = true;
+};
 
 const closeModal = () => {
     isModalOpen.value = false;
@@ -172,16 +200,60 @@ const closeModal = () => {
     showNameDropdown.value = false;
     highlightedCodeIndex.value = -1;
     highlightedNameIndex.value = -1;
-    form.reset();
-    form.clearErrors();
+    
+    // Wait for exit animation to finish before clearing
+    setTimeout(() => {
+        form.reset();
+        form.clearErrors();
+    }, 200);
 };
 
 const submit = () => {
-    form.post(route('admin.departments.store'), {
-        // Trigger the toast ONLY when Inertia says the request was a full success
+    if (isEditMode.value) {
+        form.put(route('admin.departments.update', editingId.value), {
+            onSuccess: () => {
+                closeModal();
+                showToast('Department successfully updated!');
+            },
+            preserveScroll: true,
+        });
+    } else {
+        form.post(route('admin.departments.store'), {
+            onSuccess: () => {
+                closeModal();
+                showToast('Department successfully created!');
+            },
+            preserveScroll: true,
+        });
+    }
+};
+
+// --- Delete Actions ---
+const confirmDelete = (dept) => {
+    departmentToDelete.value = dept;
+    isDeleteModalOpen.value = true;
+};
+
+const closeDeleteModal = () => {
+    isDeleteModalOpen.value = false;
+    setTimeout(() => {
+        departmentToDelete.value = null;
+        form.clearErrors();
+    }, 200);
+};
+
+const deleteDepartment = () => {
+    form.delete(route('admin.departments.destroy', departmentToDelete.value.id), {
         onSuccess: () => {
-            closeModal();
-            showSuccessToast('Department successfully created!');
+            closeDeleteModal();
+            showToast('Department deleted successfully!');
+        },
+        onError: (errors) => {
+            // Trigger error toast if backend policy prevents deletion
+            if (errors.delete) {
+                closeDeleteModal();
+                showToast(errors.delete, 'error');
+            }
         },
         preserveScroll: true,
     });
@@ -189,18 +261,15 @@ const submit = () => {
 </script>
 
 <template>
-
     <Head title="Departments" />
 
     <AppLayout>
         <div class="relative">
-
             <PageHeader title="Department Management" description="Create and manage departments." />
 
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                    <div
-                        class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                    <div class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
                         <div class="p-3 rounded-full bg-[#1369a8]/10 text-[#1369a8] mr-4">
                             <Building2 class="w-6 h-6" />
                         </div>
@@ -209,8 +278,7 @@ const submit = () => {
                             <p class="text-2xl font-black text-gray-800">{{ totalDepartments }}</p>
                         </div>
                     </div>
-                    <div
-                        class="bg-white border-l-4 border-[#1d62c7] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                    <div class="bg-white border-l-4 border-[#1d62c7] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
                         <div class="p-3 rounded-full bg-[#1d62c7]/10 text-[#1d62c7] mr-4">
                             <Users class="w-6 h-6" />
                         </div>
@@ -221,8 +289,7 @@ const submit = () => {
                     </div>
                 </div>
 
-                <button @click="openModal"
-                    class="inline-flex items-center justify-center px-5 py-3 bg-[#1d62c7] hover:bg-[#1369a8] text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:ring-2 focus:ring-[#1d62c7]/50 focus:outline-none whitespace-nowrap">
+                <button @click="openModal" class="inline-flex items-center justify-center px-5 py-3 bg-[#1d62c7] hover:bg-[#1369a8] text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:ring-2 focus:ring-[#1d62c7]/50 focus:outline-none whitespace-nowrap">
                     <Plus class="w-5 h-5 mr-2" /> Create Department
                 </button>
             </div>
@@ -240,34 +307,32 @@ const submit = () => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="dept in departments" :key="dept.id"
-                                class="hover:bg-blue-50/50 transition-colors">
+                            <tr v-for="dept in departments" :key="dept.id" class="hover:bg-blue-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-gray-900">{{ dept.code }}</td>
                                 <td class="px-6 py-4 font-medium text-gray-700">{{ dept.name }}</td>
                                 <td class="px-6 py-4">
-                                    <span
-                                        :class="['px-2.5 py-1 rounded-full text-xs font-semibold', dept.type === 'head_office' ? 'bg-purple-50 text-purple-700' : 'bg-brand-yellow/10 text-yellow-800']">
+                                    <span :class="['px-2.5 py-1 rounded-full text-xs font-semibold', dept.type === 'head_office' ? 'bg-purple-50 text-purple-700' : 'bg-[#fcb503]/20 text-yellow-800']">
                                         {{ dept.type.replace('_', ' ').toUpperCase() }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#1369a8]/10 text-[#1369a8] font-bold text-xs">{{
-                                            dept.users_count || 0 }}</span>
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#1369a8]/10 text-[#1369a8] font-bold text-xs">
+                                        {{ dept.users_count || 0 }}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <button class="text-[#1369a8] hover:text-[#0b426e] transition-colors mr-3"
-                                        title="Edit">
+                                    <button @click="openEditModal(dept)" class="text-[#1369a8] hover:text-[#0b426e] transition-colors mr-3" title="Edit">
                                         <Edit class="w-4 h-4" />
                                     </button>
-                                    <button class="text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                                    <button @click="confirmDelete(dept)" class="text-red-500 hover:text-red-700 transition-colors" title="Delete">
                                         <Trash2 class="w-4 h-4" />
                                     </button>
                                 </td>
                             </tr>
                             <tr v-if="departments.length === 0">
-                                <td colspan="5" class="px-6 py-12 text-center text-gray-400">No departments found. Click
-                                    "Create Department" to get started.</td>
+                                <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                                    No departments found. Click "Create Department" to get started.
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -278,17 +343,19 @@ const submit = () => {
         <Modal :show="isModalOpen" @close="closeModal">
             <div class="bg-[#1369a8] px-6 py-4 border-b border-[#0b426e] flex items-center justify-between">
                 <h2 class="text-lg font-black text-white flex items-center tracking-wide">
-                    <Building2 class="w-5 h-5 mr-2 opacity-80" /> Create New Department
+                    <Building2 class="w-5 h-5 mr-2 opacity-80" />
+                    {{ isEditMode ? 'Update Department' : 'Create New Department' }}
                 </h2>
                 <button @click="closeModal" class="text-white/70 hover:text-white transition-colors">
                     <X class="w-5 h-5" />
                 </button>
             </div>
 
-            <div class="p-6 bg-gray-50/50">
-                <form @submit.prevent="submit">
-
-                    <div class="mb-5 relative" ref="codeDropdownRef">
+            <form @submit.prevent="submit" class="flex flex-col bg-white">
+                
+                <div class="p-6 bg-gray-50/50 overflow-y-auto max-h-[60vh] flex flex-col gap-5">
+                    
+                    <div class="relative" ref="codeDropdownRef">
                         <InputLabel for="code" value="Department Code / Area Number" />
                         <div class="relative">
                             <TextInput id="code" v-model="form.code" @input="handleCodeInput"
@@ -296,8 +363,7 @@ const submit = () => {
                                 @keydown="handleCodeKeydown" type="text"
                                 class="mt-1 block w-full pr-10 border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm"
                                 placeholder="Search or type custom code" autocomplete="off" />
-                            <div
-                                class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                 <ChevronDown class="w-4 h-4" />
                             </div>
                         </div>
@@ -307,8 +373,7 @@ const submit = () => {
                             <ul class="py-1">
                                 <li v-for="(dept, index) in filteredCodes" :key="'dropdown-code-' + dept.code"
                                     @click="selectPredefinedCode(dept)" @mouseenter="highlightedCodeIndex = index"
-                                    :class="['px-4 py-2 cursor-pointer text-sm flex justify-between items-center group transition-colors',
-                                        highlightedCodeIndex === index ? 'bg-blue-100' : 'hover:bg-blue-50']">
+                                    :class="['px-4 py-2 cursor-pointer text-sm flex justify-between items-center group transition-colors', highlightedCodeIndex === index ? 'bg-blue-100' : 'hover:bg-blue-50']">
                                     <span class="font-bold text-[#1369a8]">{{ dept.code }}</span>
                                     <span class="text-gray-500 group-hover:text-gray-700">{{ dept.name }}</span>
                                 </li>
@@ -317,7 +382,7 @@ const submit = () => {
                         <InputError :message="form.errors.code" class="mt-2" />
                     </div>
 
-                    <div class="mb-5 relative" ref="nameDropdownRef">
+                    <div class="relative" ref="nameDropdownRef">
                         <InputLabel for="name" value="Department / Area Name" />
                         <div class="relative">
                             <TextInput id="name" v-model="form.name" @input="handleNameInput"
@@ -325,8 +390,7 @@ const submit = () => {
                                 @keydown="handleNameKeydown" type="text"
                                 class="mt-1 block w-full pr-10 border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm"
                                 placeholder="Search or type custom name" autocomplete="off" />
-                            <div
-                                class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                 <ChevronDown class="w-4 h-4" />
                             </div>
                         </div>
@@ -336,8 +400,7 @@ const submit = () => {
                             <ul class="py-1">
                                 <li v-for="(dept, index) in filteredNames" :key="'dropdown-name-' + dept.code"
                                     @click="selectPredefinedName(dept)" @mouseenter="highlightedNameIndex = index"
-                                    :class="['px-4 py-2 cursor-pointer text-sm flex justify-between items-center group transition-colors',
-                                        highlightedNameIndex === index ? 'bg-blue-100' : 'hover:bg-blue-50']">
+                                    :class="['px-4 py-2 cursor-pointer text-sm flex justify-between items-center group transition-colors', highlightedNameIndex === index ? 'bg-blue-100' : 'hover:bg-blue-50']">
                                     <span class="font-bold text-gray-800">{{ dept.name }}</span>
                                     <span class="text-[#1369a8]/70 text-xs font-semibold">{{ dept.code }}</span>
                                 </li>
@@ -346,7 +409,7 @@ const submit = () => {
                         <InputError :message="form.errors.name" class="mt-2" />
                     </div>
 
-                    <div class="mb-8">
+                    <div>
                         <InputLabel for="type" value="Location Type" />
                         <select id="type" v-model="form.type"
                             class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
@@ -356,17 +419,45 @@ const submit = () => {
                         <InputError :message="form.errors.type" class="mt-2" />
                     </div>
 
-                    <div class="flex justify-end space-x-3 pt-5 border-t border-gray-200">
-                        <button type="button" @click="closeModal"
-                            class="inline-flex items-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors focus:ring-2 focus:ring-red-500 focus:outline-none">
-                            <X class="w-4 h-4 mr-2" /> Cancel
-                        </button>
-                        <button type="submit" :disabled="form.processing"
-                            class="inline-flex items-center px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors focus:ring-2 focus:ring-green-500 focus:outline-none disabled:opacity-50">
-                            <Check class="w-4 h-4 mr-2" /> Create Record
-                        </button>
-                    </div>
-                </form>
+                </div>
+
+                <div class="px-6 py-4 bg-gray-100 flex justify-end space-x-3 border-t border-gray-200">
+                    <button type="button" @click="closeModal"
+                        class="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-bold rounded-md shadow-sm transition-colors focus:outline-none">
+                        <X class="w-4 h-4 mr-2" /> Cancel
+                    </button>
+                    <button type="submit" :disabled="form.processing"
+                        class="inline-flex items-center px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors disabled:opacity-50">
+                        <Check class="w-4 h-4 mr-2" /> {{ isEditMode ? 'Save Changes' : 'Create Record' }}
+                    </button>
+                </div>
+
+            </form>
+        </Modal>
+
+        <Modal :show="isDeleteModalOpen" @close="closeDeleteModal" maxWidth="md">
+            <div class="p-6">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+                    <AlertTriangle class="w-6 h-6 text-red-600" />
+                </div>
+                <div class="mt-4 text-center">
+                    <h3 class="text-lg font-black text-gray-900">Confirm Deletion</h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Are you sure you want to delete <span class="font-bold text-gray-800">{{
+                            departmentToDelete?.name }}</span>?<br>
+                        This action cannot be undone.
+                    </p>
+                </div>
+                <div class="flex justify-center space-x-4 mt-8">
+                    <button @click="closeDeleteModal"
+                        class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-md transition-colors focus:outline-none">
+                        No, Keep it
+                    </button>
+                    <button @click="deleteDepartment" :disabled="form.processing"
+                        class="inline-flex items-center px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors focus:ring-2 focus:ring-red-500 focus:outline-none disabled:opacity-50">
+                        Yes, Delete
+                    </button>
+                </div>
             </div>
         </Modal>
 
@@ -376,10 +467,11 @@ const submit = () => {
             leave-active-class="transition ease-in duration-200" leave-from-class="opacity-100"
             leave-to-class="opacity-0">
             <div v-if="toast.show"
-                class="fixed top-6 right-6 z-[100] flex items-center w-full max-w-sm p-4 space-x-3 text-gray-800 bg-white border-l-4 border-green-500 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
+                :class="['fixed top-6 right-6 z-[100] flex items-center w-full max-w-sm p-4 space-x-3 text-gray-800 bg-white border-l-4 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)]', toast.type === 'error' ? 'border-red-500' : 'border-green-500']">
                 <div
-                    class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-600 bg-green-100 rounded-lg">
-                    <Check class="w-5 h-5" />
+                    :class="['inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg', toast.type === 'error' ? 'text-red-600 bg-red-100' : 'text-green-600 bg-green-100']">
+                    <AlertTriangle v-if="toast.type === 'error'" class="w-5 h-5" />
+                    <Check v-else class="w-5 h-5" />
                 </div>
                 <div class="text-sm font-bold">{{ toast.message }}</div>
                 <button @click="toast.show = false"

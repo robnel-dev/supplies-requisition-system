@@ -11,7 +11,6 @@ use App\Http\Controllers\Admin\UserController;
 |--------------------------------------------------------------------------
 */
 
-// Redirect root domain straight to the login page
 Route::redirect('/', '/login');
 
 /*
@@ -27,28 +26,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return inertia('Dashboard');
     })->name('dashboard');
 
-
     // HR ADMIN ONLY ROUTES
-    // We add ->name('admin.') so that 'departments' becomes 'admin.departments.index'
-    // We add ->prefix('admin') so the URL becomes /admin/departments
     Route::middleware(['role:hr_admin'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
             Route::resource('departments', DepartmentController::class);
+            
+            // Custom route for updating passwords MUST go before the resource route
+            Route::put('users/{user}/password', [UserController::class, 'updatePassword'])->name('users.password');
             Route::resource('users', UserController::class);
         });
 
-
     // APPROVER ONLY ROUTES
     Route::middleware(['role:approver'])->group(function () {
-        // Route::get('/approvals', [ApprovalController::class, 'index'])->name('approvals.index');
+        // Route::get('/approvals', ...);
     });
 });
 
-/*
-|--------------------------------------------------------------------------
-| Authentication Routes (Breeze)
-|--------------------------------------------------------------------------
-*/
 require __DIR__ . '/auth.php';
