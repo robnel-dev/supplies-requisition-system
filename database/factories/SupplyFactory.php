@@ -9,17 +9,15 @@ class SupplyFactory extends Factory
 {
     public function definition(): array
     {
-        // By default, create a matching external reference so relationships work
+        // Generate an external reference to link to
         $external = ExternalSupplyReference::factory()->create();
 
         return [
-            'item_code' => $external->item_code,
-            // Leave internal name/desc null so it falls back to the external one
-            'item_name' => null, 
-            'item_description' => null,
+            'item_code' => $external->item_code, // Map to DB2 item_code
+            'item_description' => null, // Leave null so it falls back to the external DB2 description
             'category' => $this->faker->randomElement(['Computer Supplies', 'Office & Store Supplies', 'Cleaning']),
-            'unit' => $this->faker->randomElement(['pcs', 'ream', 'roll', 'box', 'set', 'pack']),
-            'is_active' => $this->faker->boolean(80), // 80% chance to be active
+            'unit' => $external->unit_of_measure, // Auto-sync the unit
+            'is_active' => $this->faker->boolean(85), // 85% chance of being active
         ];
     }
 }

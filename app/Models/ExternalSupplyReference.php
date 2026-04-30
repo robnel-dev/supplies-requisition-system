@@ -9,10 +9,21 @@ class ExternalSupplyReference extends Model
 {
     use HasFactory;
 
+    protected $connection = 'external_mysql';
+
     protected $fillable = [
-        'item_code', 'item_name', 'item_description', 
-        'available_stocks', 'allocatable_stocks'
+        'company_no',
+        'warehouse_location',
+        'item_code',
+        'item_description',
+        'unit_of_measure',
+        'stock_quantity',
+        'allocated_quantity',
+        'allocatable_quantity',
+        'MBORTY', //freefield
+        'MBSTAT' //freefield
     ];
+
 
     public function supply()
     {

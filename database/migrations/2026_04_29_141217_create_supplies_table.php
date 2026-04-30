@@ -9,16 +9,12 @@ return new class extends Migration {
     {
         Schema::create('supplies', function (Blueprint $table) {
             $table->id();
-            $table->string('item_code')->unique(); 
-            
-            $table->string('item_name')->nullable();
-            $table->text('item_description')->nullable(); 
-
+            $table->string('item_code', 50)->unique(); 
+            $table->text('item_description')->nullable();
             $table->string('category')->index();
             $table->string('unit');
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
-            
         });
     }
 

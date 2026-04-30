@@ -20,23 +20,20 @@ class SupplyController extends Controller
     {
         Gate::authorize('viewAny', Supply::class);
 
-        // For filters
         $search = $request->input('search');
         $status = $request->input('status');
         $category = $request->input('category');
 
         $supplies = Supply::with('reference')
             ->when($search, function ($query, $search) {
-                // Wrapped in a nested where to prevent 'OR' bleed-over into the status/category filters
                 $query->where(function ($q) use ($search) {
                     $q->where('item_code', 'like', "%{$search}%")
-                        ->orWhere('item_name', 'like', "%{$search}%") // Search internal custom names
+                        ->orWhere('item_description', 'like', "%{$search}%")
                         ->orWhereHas('reference', function ($refQ) use ($search) {
-                            $refQ->where('item_name', 'like', "%{$search}%"); // Search external names
+                            $refQ->where('item_description', 'like', "%{$search}%");
                         });
                 });
             })
-            // Strict check to ensure empty strings from the "All Statuses" dropdown don't trigger this
             ->when($status !== null && $status !== '', function ($query) use ($status) {
                 $query->where('is_active', $status === 'active');
             })
@@ -61,7 +58,6 @@ class SupplyController extends Controller
     {
         Gate::authorize('create', Supply::class);
         $this->supplyService->createSupply($request->validated());
-
         return redirect()->back()->with('success', 'Supply added successfully.');
     }
 
@@ -69,20 +65,13 @@ class SupplyController extends Controller
     {
         Gate::authorize('update', $supply);
         $this->supplyService->updateSupply($supply, $request->validated());
-
         return redirect()->back()->with('success', 'Supply updated successfully.');
     }
 
     public function destroy(Supply $supply)
     {
-        // Added Security Gate!
         Gate::authorize('delete', $supply);
-
-        // Important: Depending on Phase 3, you might not want to delete supplies 
-        // that have already been tied to an employee request. 
-        // If it throws a foreign key error, your Vue frontend will gracefully show an error toast!
         $supply->delete();
-
         return redirect()->back();
     }
 
@@ -90,23 +79,20 @@ class SupplyController extends Controller
     {
         Gate::authorize('update', $supply);
         $this->supplyService->toggleActiveStatus($supply);
-
         return redirect()->back()->with('success', 'Status toggled successfully.');
     }
 
-    // Endpoint for Vue Auto-fill feature
     public function searchExternal(Request $request)
     {
         $term = $request->input('term');
 
-        // Added a quick exit if term is empty to save database queries
         if (!$term) {
             return response()->json([]);
         }
 
         $references = ExternalSupplyReference::where('item_code', 'like', "%{$term}%")
-            ->orWhere('item_name', 'like', "%{$term}%")
-            ->limit(5) // Keep it light
+            ->orWhere('item_description', 'like', "%{$term}%") // Updated to search description
+            ->limit(5)
             ->get();
 
         return response()->json($references);

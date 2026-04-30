@@ -11,8 +11,7 @@ class Supply extends Model
 
     protected $fillable = [
         'item_code',
-        'item_name',
-        'item_description',
+        'item_description', 
         'category',
         'unit',
         'is_active'
@@ -22,10 +21,9 @@ class Supply extends Model
         'is_active' => 'boolean',
     ];
 
-    // Append these so Vue can read them directly as if they were columns in the supplies table!
+    // Updated appends for Vue
     protected $appends = [
-        'display_name',
-        'display_description',
+        'display_description', 
         'available_stocks',
         'allocatable_stocks'
     ];
@@ -35,12 +33,7 @@ class Supply extends Model
         return $this->belongsTo(ExternalSupplyReference::class, 'item_code', 'item_code');
     }
 
-    // --- Accessors for Name & Description ---
-    public function getDisplayNameAttribute()
-    {
-        return $this->reference ? $this->reference->item_name : $this->item_name;
-    }
-
+    // --- Accessors for Description ---
     public function getDisplayDescriptionAttribute()
     {
         return $this->reference ? $this->reference->item_description : $this->item_description;

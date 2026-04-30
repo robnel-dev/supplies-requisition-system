@@ -70,12 +70,11 @@ watch([search, statusFilter, categoryFilter], debounce(([newSearch, newStatus, n
     );
 }, 300));
 
-// --- Forms Initial States ---
+// --- Forms Initial States (Updated for DB2 Schema) ---
 const initialFormState = {
     id: null,
     item_code: '',
-    item_name: '',
-    item_description: '',
+    item_description: '', // Replaced item_name
     category: '',
     unit: ''
 };
@@ -94,9 +93,10 @@ const fetchExternalReferences = debounce(async (term) => {
 }, 300);
 
 const selectReference = (refItem) => {
-    form.item_code = refItem.item_code;
-    form.item_name = refItem.item_name;
+    // Mapping from DB2 External Table to our Local Table
+    form.item_code = refItem.item_code; 
     form.item_description = refItem.item_description;
+    form.unit = refItem.unit_of_measure || ''; // Auto-fill unit if available!
     form.clearErrors();
     externalResults.value = [];
 };
@@ -122,7 +122,6 @@ const openEditModal = (supply) => {
     form.defaults({
         id: supply.id,
         item_code: supply.item_code,
-        item_name: supply.item_name || (supply.reference ? supply.reference.item_name : ''),
         item_description: supply.item_description || (supply.reference ? supply.reference.item_description : ''),
         category: supply.category,
         unit: supply.unit,
@@ -200,7 +199,6 @@ const deleteSupply = () => {
 </script>
 
 <template>
-
     <Head title="Supplies Catalog" />
 
     <AppLayout>
@@ -210,8 +208,7 @@ const deleteSupply = () => {
 
             <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-6">
                 <div class="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
-                    <div
-                        class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[200px]">
+                    <div class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[200px]">
                         <div class="p-3 rounded-full bg-[#1369a8]/10 text-[#1369a8] mr-4">
                             <Package class="w-6 h-6" />
                         </div>
@@ -221,8 +218,7 @@ const deleteSupply = () => {
                         </div>
                     </div>
 
-                    <div
-                        class="bg-white border-l-4 border-green-500 shadow-sm rounded-r-xl p-5 flex items-center min-w-[200px]">
+                    <div class="bg-white border-l-4 border-green-500 shadow-sm rounded-r-xl p-5 flex items-center min-w-[200px]">
                         <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
                             <CheckCircle class="w-6 h-6" />
                         </div>
@@ -232,8 +228,6 @@ const deleteSupply = () => {
                         </div>
                     </div>
                 </div>
-
-
 
                 <div class="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
 
@@ -265,10 +259,9 @@ const deleteSupply = () => {
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search class="h-5 w-5 text-gray-400" />
                         </div>
-                        <input v-model="search" type="text" placeholder="Search item code or name..."
+                        <input v-model="search" type="text" placeholder="Search item code or description..."
                             class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#1d62c7] focus:border-[#1d62c7] sm:text-sm transition duration-150 ease-in-out" />
                     </div>
-
 
                     <button @click="openAddModal"
                         class="inline-flex items-center justify-center px-5 py-2.5 bg-[#1d62c7] hover:bg-[#1369a8] text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:ring-2 focus:ring-[#1d62c7]/50 focus:outline-none whitespace-nowrap">
@@ -283,7 +276,7 @@ const deleteSupply = () => {
                         <thead class="bg-[#1369a8] uppercase tracking-wider text-[11px] font-bold text-white">
                             <tr>
                                 <th class="px-6 py-4">Item Code</th>
-                                <th class="px-6 py-4">Item Name</th>
+                                <th class="px-6 py-4">Item Description</th>
                                 <th class="px-6 py-4">Category</th>
                                 <th class="px-6 py-4">Unit</th>
                                 <th class="px-6 py-4">Available Stocks</th>
@@ -296,7 +289,7 @@ const deleteSupply = () => {
                             <tr v-for="supply in supplies.data" :key="supply.id"
                                 class="hover:bg-blue-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-[#1369a8]">{{ supply.item_code }}</td>
-                                <td class="px-6 py-4 font-bold text-gray-900">{{ supply.display_name || 'N/A' }}</td>
+                                <td class="px-6 py-4 font-bold text-gray-900">{{ supply.display_description || 'N/A' }}</td>
                                 <td class="px-6 py-4 text-gray-600">{{ supply.category }}</td>
                                 <td class="px-6 py-4 text-gray-600 font-medium">{{ supply.unit }}</td>
                                 <td class="px-6 py-4 font-bold text-gray-800">{{ supply.available_stocks }}</td>
@@ -390,24 +383,16 @@ const deleteSupply = () => {
                             <li v-for="ref in externalResults" :key="ref.item_code" @click="selectReference(ref)"
                                 class="p-3 hover:bg-[#1369a8] hover:text-white cursor-pointer transition-colors group">
                                 <div class="font-bold text-gray-900 group-hover:text-white">{{ ref.item_code }}</div>
-                                <div class="text-xs text-gray-500 group-hover:text-blue-100 mt-0.5">{{ ref.item_name }}
-                                </div>
+                                <div class="text-xs text-gray-500 group-hover:text-blue-100 mt-0.5">{{ ref.item_description }}</div>
                             </li>
                         </ul>
-                    </div>
-
-                    <div>
-                        <InputLabel value="Item Name" />
-                        <TextInput v-model="form.item_name" type="text" placeholder="Enter custom name or use auto-fill"
-                            class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
-                        <InputError :message="form.errors.item_name" class="mt-2" />
                     </div>
 
                     <div>
                         <InputLabel value="Item Description" />
                         <textarea v-model="form.item_description"
                             class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm"
-                            rows="2" placeholder="Optional description"></textarea>
+                            rows="2" placeholder="Enter custom description or use auto-fill"></textarea>
                         <InputError :message="form.errors.item_description" class="mt-2" />
                     </div>
 
@@ -470,7 +455,7 @@ const deleteSupply = () => {
                     <h3 class="text-lg font-black text-gray-900">Delete Supply</h3>
                     <p class="mt-2 text-sm text-gray-500">
                         Are you sure you want to delete <span class="font-bold text-gray-800">{{
-                            supplyToDelete?.display_name ||
+                            supplyToDelete?.display_description ||
                             supplyToDelete?.item_code }}</span>?<br>
                         This action cannot be undone.
                     </p>

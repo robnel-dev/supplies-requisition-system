@@ -12,8 +12,7 @@ class SupplyService
         return DB::transaction(function () use ($data) {
             return Supply::create([
                 'item_code' => $data['item_code'],
-                'item_name' => $data['item_name'],               // Added
-                'item_description' => $data['item_description'], // Added
+                'item_description' => $data['item_description'], 
                 'category' => $data['category'],
                 'unit' => $data['unit'],
                 'is_active' => $data['is_active'] ?? true,
