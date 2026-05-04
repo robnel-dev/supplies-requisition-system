@@ -15,7 +15,7 @@ class SupplyFactory extends Factory
         return [
             'item_code' => $external->item_code, // Map to DB2 item_code
             'item_description' => null, // Leave null so it falls back to the external DB2 description
-            'category' => $this->faker->randomElement(['Computer Supplies', 'Office & Store Supplies', 'Cleaning']),
+            'category' => $this->faker->randomElement(['Tech & Computer Supplies', 'Office & Store Supplies', 'Cleaning & Janitorial Supplies', 'General Supplies']),
             'unit' => $external->unit_of_measure, // Auto-sync the unit
             'is_active' => $this->faker->boolean(85), // 85% chance of being active
         ];

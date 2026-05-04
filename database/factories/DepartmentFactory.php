@@ -15,7 +15,7 @@ class DepartmentFactory extends Factory
             // Example: "Tech Solutions Department"
             'name' => $this->faker->company() . ' Department',
             
-            // Example: "DEP-1234"
+            // Example: "DEP"
             'code' => strtoupper($this->faker->unique()->lexify('???')),
             
             // Randomly picks between head_office or store

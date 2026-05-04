@@ -71,7 +71,7 @@ const openCreateModal = () => {
     isEditMode.value = false;
     editingId.value = null;
     
-    // CRITICAL FIX 1: Force defaults back to empty before resetting
+    // Force defaults back to empty before resetting
     form.defaults(initialFormState);
     form.reset();
     form.clearErrors();
@@ -83,7 +83,7 @@ const openEditModal = (user) => {
     isEditMode.value = true;
     editingId.value = user.id;
     
-    // CRITICAL FIX 2: Set defaults to the selected user's data
+    // Set defaults to the selected user's data
     form.defaults({
         name: user.name,
         email: user.email,

@@ -31,9 +31,9 @@ const allMenuOptions = [
     { name: 'Approval Queue', href: '#', active: route().current('approvals.queue'), icon: CheckSquare, roles: ['approver'] },
 
     // Admin Routes Connected Here
-    { name: 'Supplies Management', href: route('admin.supplies.index'), active: route().current('admin.supplies.*'), icon: BaggageClaim , roles: ['hr_admin'] },
+    { name: 'Supplies', href: route('admin.supplies.index'), active: route().current('admin.supplies.*'), icon: BaggageClaim , roles: ['hr_admin'] },
     { name: 'Departments', href: route('admin.departments.index'), active: route().current('admin.departments.*'), icon: Building, roles: ['hr_admin'] },
-    { name: 'User Management', href: route('admin.users.index'), active: route().current('admin.users.*'), icon: Users, roles: ['hr_admin'] },
+    { name: 'Users', href: route('admin.users.index'), active: route().current('admin.users.*'), icon: Users, roles: ['hr_admin'] },
 ];
 
 const filteredNavigation = computed(() => {

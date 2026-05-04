@@ -15,7 +15,7 @@ const props = defineProps({
     stats: {
         type: Object,
         default: () => ({ total: 0, active: 0 })
-    }
+    } 
 });
 
 // --- State Management ---
@@ -35,7 +35,7 @@ const showToast = (message, type = 'success') => {
     setTimeout(() => { toast.value.show = false; }, 3000);
 };
 
-// --- Custom Debounce (No Lodash Required) ---
+// --- Custom Debounce ---
 const debounce = (fn, delay = 300) => {
     let timeoutId;
     return (...args) => {
@@ -49,17 +49,14 @@ const search = ref(props.filters.search || '');
 const statusFilter = ref(props.filters.status || '');
 const categoryFilter = ref(props.filters.category || '');
 
-// Computed property to check if any filter is active
 const hasFilters = computed(() => {
     return search.value !== '' || statusFilter.value !== '' || categoryFilter.value !== '';
 });
 
-// Clear all filters action
 const clearFilters = () => {
     search.value = '';
     statusFilter.value = '';
     categoryFilter.value = '';
-    // The watcher below will automatically catch these changes and update the table
 };
 
 watch([search, statusFilter, categoryFilter], debounce(([newSearch, newStatus, newCategory]) => {
@@ -70,11 +67,11 @@ watch([search, statusFilter, categoryFilter], debounce(([newSearch, newStatus, n
     );
 }, 300));
 
-// --- Forms Initial States (Updated for DB2 Schema) ---
+// --- Forms Initial States ---
 const initialFormState = {
     id: null,
     item_code: '',
-    item_description: '', // Replaced item_name
+    item_description: '',
     category: '',
     unit: ''
 };
@@ -92,16 +89,34 @@ const fetchExternalReferences = debounce(async (term) => {
     }
 }, 300);
 
+// Unit Mapping Dictionary
+const unitMapping = {
+    'PCE': 'pieces',
+    'BOX': 'box',
+    'BOT': 'bottle',
+    'GAL': 'gallon',
+    'BAR': 'bar',
+    'PAC': 'pack',
+    'PR': 'pair',
+    'ROL': 'roll',
+    'RM': 'ream',
+    'PAD': 'pad',
+    'TUB': 'tub'
+};
+
 const selectReference = (refItem) => {
-    // Mapping from DB2 External Table to our Local Table
-    form.item_code = refItem.item_code; 
+    form.item_code = refItem.item_code;
     form.item_description = refItem.item_description;
-    form.unit = refItem.unit_of_measure || ''; // Auto-fill unit if available!
+
+    // Auto-convert unit of measure
+    const originalUnit = refItem.unit_of_measure ? refItem.unit_of_measure.trim().toUpperCase() : '';
+    form.unit = unitMapping[originalUnit] || originalUnit || ''; // Fallback if missing
+
     form.clearErrors();
     externalResults.value = [];
 };
 
-// --- Add / Edit Modal Actions ---
+// --- Modal Actions ---
 const openAddModal = () => {
     isEditMode.value = false;
     editingId.value = null;
@@ -199,6 +214,7 @@ const deleteSupply = () => {
 </script>
 
 <template>
+
     <Head title="Supplies Catalog" />
 
     <AppLayout>
@@ -208,7 +224,8 @@ const deleteSupply = () => {
 
             <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-6">
                 <div class="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
-                    <div class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[200px]">
+                    <div
+                        class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[200px]">
                         <div class="p-3 rounded-full bg-[#1369a8]/10 text-[#1369a8] mr-4">
                             <Package class="w-6 h-6" />
                         </div>
@@ -218,7 +235,8 @@ const deleteSupply = () => {
                         </div>
                     </div>
 
-                    <div class="bg-white border-l-4 border-green-500 shadow-sm rounded-r-xl p-5 flex items-center min-w-[200px]">
+                    <div
+                        class="bg-white border-l-4 border-green-500 shadow-sm rounded-r-xl p-5 flex items-center min-w-[200px]">
                         <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
                             <CheckCircle class="w-6 h-6" />
                         </div>
@@ -240,9 +258,10 @@ const deleteSupply = () => {
                         <select v-model="categoryFilter"
                             class="block w-full py-2.5 px-3 border border-gray-300 rounded-lg leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-[#1d62c7] focus:border-[#1d62c7] sm:text-sm transition duration-150 ease-in-out cursor-pointer">
                             <option value="">All Categories</option>
-                            <option value="Computer Supplies">Computer Supplies</option>
                             <option value="Office & Store Supplies">Office & Store Supplies</option>
-                            <option value="Cleaning">Cleaning</option>
+                            <option value="Tech & Computer Supplies">Tech & Computer Supplies</option>
+                            <option value="Cleaning & Janitorial Supplies">Cleaning & Janitorial Supplies</option>
+                            <option value="General Supplies">General Supplies</option>
                         </select>
                     </div>
 
@@ -289,7 +308,8 @@ const deleteSupply = () => {
                             <tr v-for="supply in supplies.data" :key="supply.id"
                                 class="hover:bg-blue-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-[#1369a8]">{{ supply.item_code }}</td>
-                                <td class="px-6 py-4 font-bold text-gray-900">{{ supply.display_description || 'N/A' }}</td>
+                                <td class="px-6 py-4 font-bold text-gray-900">{{ supply.display_description || 'N/A' }}
+                                </td>
                                 <td class="px-6 py-4 text-gray-600">{{ supply.category }}</td>
                                 <td class="px-6 py-4 text-gray-600 font-medium">{{ supply.unit }}</td>
                                 <td class="px-6 py-4 font-bold text-gray-800">{{ supply.available_stocks }}</td>
@@ -327,7 +347,7 @@ const deleteSupply = () => {
                             </tr>
                             <tr v-if="supplies.data.length === 0">
                                 <td colspan="8" class="px-6 py-12 text-center text-gray-500">
-                                    No supplies found matching your criteria.
+                                    No supply records available.
                                 </td>
                             </tr>
                         </tbody>
@@ -383,7 +403,9 @@ const deleteSupply = () => {
                             <li v-for="ref in externalResults" :key="ref.item_code" @click="selectReference(ref)"
                                 class="p-3 hover:bg-[#1369a8] hover:text-white cursor-pointer transition-colors group">
                                 <div class="font-bold text-gray-900 group-hover:text-white">{{ ref.item_code }}</div>
-                                <div class="text-xs text-gray-500 group-hover:text-blue-100 mt-0.5">{{ ref.item_description }}</div>
+                                <div class="text-xs text-gray-500 group-hover:text-blue-100 mt-0.5">{{
+                                    ref.item_description }}
+                                </div>
                             </li>
                         </ul>
                     </div>
@@ -401,9 +423,10 @@ const deleteSupply = () => {
                         <select v-model="form.category"
                             class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm cursor-pointer">
                             <option value="" disabled>Select a category...</option>
-                            <option>Computer Supplies</option>
                             <option>Office & Store Supplies</option>
-                            <option>Cleaning</option>
+                            <option>Tech & Computer Supplies</option>
+                            <option>Cleaning & Janitorial Supplies</option>
+                            <option>General Supplies</option>
                         </select>
                         <InputError :message="form.errors.category" class="mt-2" />
                     </div>
@@ -411,21 +434,21 @@ const deleteSupply = () => {
                     <div>
                         <InputLabel value="Unit of Measure" />
                         <TextInput v-model="form.unit" type="text" list="unit-options"
-                            placeholder="Select or type custom unit (e.g., pcs)"
+                            placeholder="Select or type custom unit (e.g., pieces)"
                             class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
 
                         <datalist id="unit-options">
-                            <option value="pcs"></option>
-                            <option value="ream"></option>
-                            <option value="roll"></option>
+                            <option value="pieces"></option>
                             <option value="box"></option>
                             <option value="bottle"></option>
-                            <option value="pack"></option>
-                            <option value="tube"></option>
                             <option value="gallon"></option>
-                            <option value="can"></option>
-                            <option value="set"></option>
+                            <option value="bar"></option>
+                            <option value="pack"></option>
+                            <option value="pair"></option>
+                            <option value="roll"></option>
+                            <option value="ream"></option>
                             <option value="pad"></option>
+                            <option value="tub"></option>
                         </datalist>
 
                         <InputError :message="form.errors.unit" class="mt-2" />

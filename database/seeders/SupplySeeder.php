@@ -30,10 +30,9 @@ class SupplySeeder extends Seeder
         }
 
         // Generate 15 more random fake external items just to pad the table out for testing pagination
-        ExternalSupplyReference::factory()->count(15)->create();
+        ExternalSupplyReference::factory()->count(20)->create();
 
         // 2. REGISTER A FEW ITEMS INTO OUR LOCAL HR SYSTEM (Local DB)
-        // Let's explicitly register the first 4 real items so we can see them in our Vue table right away
         $itemsToSync = array_slice($actualItems, 0, 4);
 
         foreach ($itemsToSync as $item) {
@@ -41,7 +40,7 @@ class SupplySeeder extends Seeder
                 ['item_code' => $item['item_code']],
                 [
                     // We don't save the item_description here; we let the model fetch it from the external reference!
-                    'category' => str_contains($item['item_description'], 'HP') || str_contains($item['item_description'], 'CMOS') ? 'Computer Supplies' : 'Office & Store Supplies',
+                    'category' => str_contains($item['item_description'], 'HP') || str_contains($item['item_description'], 'CMOS') ? 'Tech & Computer Supplies' : 'Office & Store Supplies',
                     'unit' => strtolower($item['unit_of_measure']),
                     'is_active' => true,
                 ]

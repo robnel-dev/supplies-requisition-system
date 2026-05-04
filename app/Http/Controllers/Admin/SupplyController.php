@@ -24,14 +24,24 @@ class SupplyController extends Controller
         $status = $request->input('status');
         $category = $request->input('category');
 
+        // CROSS-DATABASE  
+        $matchingExternalCodes = [];
+        if ($search) {
+            $matchingExternalCodes = ExternalSupplyReference::where('item_code', 'like', "%{$search}%")
+                ->orWhere('item_description', 'like', "%{$search}%")
+                ->pluck('item_code')
+                ->toArray();
+        }
+
         $supplies = Supply::with('reference')
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
+            ->when($search, function ($query) use ($search, $matchingExternalCodes) {
+                $query->where(function ($q) use ($search, $matchingExternalCodes) {
                     $q->where('item_code', 'like', "%{$search}%")
-                        ->orWhere('item_description', 'like', "%{$search}%")
-                        ->orWhereHas('reference', function ($refQ) use ($search) {
-                            $refQ->where('item_description', 'like', "%{$search}%");
-                        });
+                        ->orWhere('item_description', 'like', "%{$search}%");
+
+                    if (!empty($matchingExternalCodes)) {
+                        $q->orWhereIn('item_code', $matchingExternalCodes);
+                    }
                 });
             })
             ->when($status !== null && $status !== '', function ($query) use ($status) {
@@ -91,7 +101,7 @@ class SupplyController extends Controller
         }
 
         $references = ExternalSupplyReference::where('item_code', 'like', "%{$term}%")
-            ->orWhere('item_description', 'like', "%{$term}%") // Updated to search description
+            ->orWhere('item_description', 'like', "%{$term}%")
             ->limit(5)
             ->get();
 

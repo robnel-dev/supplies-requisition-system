@@ -11,7 +11,7 @@ class Supply extends Model
 
     protected $fillable = [
         'item_code',
-        'item_description', 
+        'item_description',
         'category',
         'unit',
         'is_active'
@@ -21,32 +21,32 @@ class Supply extends Model
         'is_active' => 'boolean',
     ];
 
-    // Updated appends for Vue
+    // These append the calculated data directly into the Vue component
     protected $appends = [
         'display_description', 
-        'available_stocks',
+        'available_stocks', 
         'allocatable_stocks'
-    ];
+    ]; 
 
     public function reference()
     {
-        return $this->belongsTo(ExternalSupplyReference::class, 'item_code', 'item_code');
+        // explicitly tell Laravel to match 'item_code' to 'item_code'
+        return $this->hasOne(ExternalSupplyReference::class, 'item_code', 'item_code');
     }
 
-    // --- Accessors for Description ---
+    // --- Accessors ---
     public function getDisplayDescriptionAttribute()
     {
         return $this->reference ? $this->reference->item_description : $this->item_description;
     }
 
-    // --- Accessors for Real-Time Stocks ---
     public function getAvailableStocksAttribute()
     {
-        return $this->reference ? $this->reference->available_stocks : 0;
+        return $this->reference ? $this->reference->stock_quantity : 0;
     }
 
     public function getAllocatableStocksAttribute()
     {
-        return $this->reference ? $this->reference->allocatable_stocks : 0;
+        return $this->reference ? $this->reference->allocatable_quantity : 0;
     }
 }
