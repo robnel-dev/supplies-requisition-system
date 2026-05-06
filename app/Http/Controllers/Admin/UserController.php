@@ -26,7 +26,8 @@ class UserController extends Controller
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('role', 'like', "%{$search}%");
+                    ->orWhere('role', 'like', "%{$search}%")
+                    ->orWhere('cost_center', 'like', "%{$search}%");
             })
             ->latest()
             ->paginate(10)
@@ -70,21 +71,21 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         Gate::authorize('delete', $user);
-        
+
         // This will throw a ValidationException if checks fail, 
         // automatically redirecting back with errors.
         $this->userService->deleteUser($user);
-        
+
         return redirect()->back()->with('success', 'User deleted successfully.');
     }
 
     public function updatePassword(Request $request, User $user)
     {
         Gate::authorize('update', $user);
-        
+
         $request->validate(['password' => 'required|min:8|confirmed']);
         $this->userService->updatePassword($user, $request->password);
-        
+
         return redirect()->back()->with('success', 'Password updated successfully.');
     }
 }

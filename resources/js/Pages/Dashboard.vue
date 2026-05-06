@@ -4,7 +4,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import AdminDashboard from '@/Pages/Admin/AdminDashboard.vue';
 
 // 1. Get user role from Inertia Auth props. 
-// 💡 Mentor Note: We default to 'admin' right now so you can see it working before we setup the database.
+// We default to 'admin' right now so you can see it working before we setup the database.
 const user = usePage().props.auth.user;
 const role = user?.role || 'hr_admin'; 
 </script>

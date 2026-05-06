@@ -5,6 +5,7 @@ import Sidebar from '@/Components/Layout/Sidebar.vue';
 import Topbar from '@/Components/Layout/Topbar.vue';
 import Footer from '@/Components/Layout/Footer.vue';
 import Breadcrumbs from '@/Components/Layout/Breadcrumbs.vue';
+import ToastNotification from '@/Components/ToastNotification.vue'
 
 const isMobileSidebarOpen = ref(false);
 const page = usePage();
@@ -28,7 +29,7 @@ watch(isMobileSidebarOpen, (open) => {
 
             <Topbar @open-mobile-menu="isMobileSidebarOpen = true" />
 
-            <main class="flex-1 overflow-y-auto flex flex-col bg-gray-50/50">
+            <main class="flex-1 overflow-y-auto flex flex-col bg-gray-100">
 
                 <div class="flex-1 p-4 sm:p-6 lg:p-8">
                     <Breadcrumbs />
@@ -38,7 +39,7 @@ watch(isMobileSidebarOpen, (open) => {
                 <Footer />
 
             </main>
-
+            <ToastNotification />
         </div>
     </div>
 </template>

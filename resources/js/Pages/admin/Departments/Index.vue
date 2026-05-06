@@ -8,6 +8,10 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PageHeader from '@/Components/PageHeader.vue';
+import { useToast } from '@/Composables/useToast';
+
+
+const { showToast } = useToast();
 
 const props = defineProps({
     departments: Array,
@@ -31,13 +35,6 @@ const toast = ref({
     message: '',
     type: 'success'
 });
-
-const showToast = (message, type = 'success') => {
-    toast.value = { show: true, message, type };
-    setTimeout(() => {
-        toast.value.show = false;
-    }, 3000);
-};
 
 // Define initial form state for clean resets
 const initialFormState = {
@@ -169,19 +166,19 @@ const handleNameKeydown = (e) => {
 const openModal = () => {
     isEditMode.value = false;
     editingId.value = null;
-    
+
     // Explicitly set defaults back to empty before resetting
     form.defaults(initialFormState);
     form.reset();
     form.clearErrors();
-    
+
     isModalOpen.value = true;
 };
 
 const openEditModal = (dept) => {
     isEditMode.value = true;
     editingId.value = dept.id;
-    
+
     // Explicitly set defaults to the selected record so cancel/reset works properly
     form.defaults({
         name: dept.name,
@@ -190,7 +187,7 @@ const openEditModal = (dept) => {
     });
     form.reset();
     form.clearErrors();
-    
+
     isModalOpen.value = true;
 };
 
@@ -200,7 +197,7 @@ const closeModal = () => {
     showNameDropdown.value = false;
     highlightedCodeIndex.value = -1;
     highlightedNameIndex.value = -1;
-    
+
     // Wait for exit animation to finish before clearing
     setTimeout(() => {
         form.reset();
@@ -261,6 +258,7 @@ const deleteDepartment = () => {
 </script>
 
 <template>
+
     <Head title="Departments" />
 
     <AppLayout>
@@ -269,8 +267,9 @@ const deleteDepartment = () => {
 
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                    <div class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
-                        <div class="p-3 rounded-full bg-[#1369a8]/10 text-[#1369a8] mr-4">
+                    <div
+                        class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                        <div class="p-3 rounded-full	bg-brand-blue-dark/10 	text-brand-blue-dark mr-4">
                             <Building2 class="w-6 h-6" />
                         </div>
                         <div>
@@ -278,8 +277,9 @@ const deleteDepartment = () => {
                             <p class="text-2xl font-black text-gray-800">{{ totalDepartments }}</p>
                         </div>
                     </div>
-                    <div class="bg-white border-l-4 border-[#1d62c7] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
-                        <div class="p-3 rounded-full bg-[#1d62c7]/10 text-[#1d62c7] mr-4">
+                    <div
+                        class="bg-white border-l-4 border-[#1d62c7] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                        <div class="p-3 rounded-full bg-brand-blue-darker/10 	text-brand-blue-darker mr-4">
                             <Users class="w-6 h-6" />
                         </div>
                         <div>
@@ -288,16 +288,18 @@ const deleteDepartment = () => {
                         </div>
                     </div>
                 </div>
-
-                <button @click="openModal" class="inline-flex items-center justify-center px-5 py-3 bg-[#1d62c7] hover:bg-[#1369a8] text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:ring-2 focus:ring-[#1d62c7]/50 focus:outline-none whitespace-nowrap">
-                    <Plus class="w-5 h-5 mr-2" /> Create Department
-                </button>
+                <div
+                    class="bg-white rounded-lg shadow-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
+                    <button @click="openModal" class="btn-primary">
+                        <Plus class="w-5 h-5 mr-2" /> Create Department
+                    </button>
+                </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-[#1369a8] uppercase tracking-wider text-[11px] font-bold text-white">
+                        <thead class="table-header">
                             <tr>
                                 <th class="px-6 py-4">Department Code</th>
                                 <th class="px-6 py-4">Department Name</th>
@@ -307,24 +309,30 @@ const deleteDepartment = () => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="dept in departments" :key="dept.id" class="hover:bg-blue-50/50 transition-colors">
+                            <tr v-for="dept in departments" :key="dept.id"
+                                class="hover:bg-blue-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-gray-900">{{ dept.code }}</td>
                                 <td class="px-6 py-4 font-medium text-gray-700">{{ dept.name }}</td>
                                 <td class="px-6 py-4">
-                                    <span :class="['px-2.5 py-1 rounded-full text-xs font-semibold', dept.type === 'head_office' ? 'bg-purple-50 text-purple-700' : 'bg-[#fcb503]/20 text-yellow-800']">
+                                    <span
+                                        :class="['px-2.5 py-1 rounded-full text-xs font-semibold', dept.type === 'head_office' ? 'bg-purple-50 text-purple-700' : 'bg-brand-yellow/20 text-yellow-800']">
                                         {{ dept.type.replace('_', ' ').toUpperCase() }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#1369a8]/10 text-[#1369a8] font-bold text-xs">
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-blue-dark/10 text-brand-blue-dark font-bold text-xs">
                                         {{ dept.users_count || 0 }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <button @click="openEditModal(dept)" class="text-[#1369a8] hover:text-[#0b426e] transition-colors mr-3" title="Edit">
+                                    <button @click="openEditModal(dept)"
+                                        class="	text-brand-blue-dark hover:text-[#0b426e] transition-colors mr-3"
+                                        title="Edit">
                                         <Edit class="w-4 h-4" />
                                     </button>
-                                    <button @click="confirmDelete(dept)" class="text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                                    <button @click="confirmDelete(dept)"
+                                        class="text-red-500 hover:text-red-700 transition-colors" title="Delete">
                                         <Trash2 class="w-4 h-4" />
                                     </button>
                                 </td>
@@ -341,7 +349,7 @@ const deleteDepartment = () => {
         </div>
 
         <Modal :show="isModalOpen" @close="closeModal">
-            <div class="bg-[#1369a8] px-6 py-4 border-b border-[#0b426e] flex items-center justify-between">
+            <div class="bg-brand-blue-dark px-6 py-4 border-b border-[#0b426e] flex items-center justify-between">
                 <h2 class="text-lg font-black text-white flex items-center tracking-wide">
                     <Building2 class="w-5 h-5 mr-2 opacity-80" />
                     {{ isEditMode ? 'Update Department' : 'Create New Department' }}
@@ -352,9 +360,9 @@ const deleteDepartment = () => {
             </div>
 
             <form @submit.prevent="submit" class="flex flex-col bg-white">
-                
+
                 <div class="p-6 bg-gray-50/50 overflow-y-auto max-h-[60vh] flex flex-col gap-5">
-                    
+
                     <div class="relative" ref="codeDropdownRef">
                         <InputLabel for="code" value="Department Code / Area Number" />
                         <div class="relative">
@@ -363,7 +371,8 @@ const deleteDepartment = () => {
                                 @keydown="handleCodeKeydown" type="text"
                                 class="mt-1 block w-full pr-10 border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm"
                                 placeholder="Search or type custom code" autocomplete="off" />
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                            <div
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                 <ChevronDown class="w-4 h-4" />
                             </div>
                         </div>
@@ -374,7 +383,7 @@ const deleteDepartment = () => {
                                 <li v-for="(dept, index) in filteredCodes" :key="'dropdown-code-' + dept.code"
                                     @click="selectPredefinedCode(dept)" @mouseenter="highlightedCodeIndex = index"
                                     :class="['px-4 py-2 cursor-pointer text-sm flex justify-between items-center group transition-colors', highlightedCodeIndex === index ? 'bg-blue-100' : 'hover:bg-blue-50']">
-                                    <span class="font-bold text-[#1369a8]">{{ dept.code }}</span>
+                                    <span class="font-bold text-brand-blue-dark">{{ dept.code }}</span>
                                     <span class="text-gray-500 group-hover:text-gray-700">{{ dept.name }}</span>
                                 </li>
                             </ul>
@@ -390,7 +399,8 @@ const deleteDepartment = () => {
                                 @keydown="handleNameKeydown" type="text"
                                 class="mt-1 block w-full pr-10 border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm"
                                 placeholder="Search or type custom name" autocomplete="off" />
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                            <div
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                 <ChevronDown class="w-4 h-4" />
                             </div>
                         </div>
@@ -402,7 +412,7 @@ const deleteDepartment = () => {
                                     @click="selectPredefinedName(dept)" @mouseenter="highlightedNameIndex = index"
                                     :class="['px-4 py-2 cursor-pointer text-sm flex justify-between items-center group transition-colors', highlightedNameIndex === index ? 'bg-blue-100' : 'hover:bg-blue-50']">
                                     <span class="font-bold text-gray-800">{{ dept.name }}</span>
-                                    <span class="text-[#1369a8]/70 text-xs font-semibold">{{ dept.code }}</span>
+                                    <span class="text-brand-blue-dark/70 text-xs font-semibold">{{ dept.code }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -461,25 +471,6 @@ const deleteDepartment = () => {
             </div>
         </Modal>
 
-        <Transition enter-active-class="transform ease-out duration-300 transition"
-            enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-4"
-            enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
-            leave-active-class="transition ease-in duration-200" leave-from-class="opacity-100"
-            leave-to-class="opacity-0">
-            <div v-if="toast.show"
-                :class="['fixed top-6 right-6 z-[100] flex items-center w-full max-w-sm p-4 space-x-3 text-gray-800 bg-white border-l-4 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)]', toast.type === 'error' ? 'border-red-500' : 'border-green-500']">
-                <div
-                    :class="['inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg', toast.type === 'error' ? 'text-red-600 bg-red-100' : 'text-green-600 bg-green-100']">
-                    <AlertTriangle v-if="toast.type === 'error'" class="w-5 h-5" />
-                    <Check v-else class="w-5 h-5" />
-                </div>
-                <div class="text-sm font-bold">{{ toast.message }}</div>
-                <button @click="toast.show = false"
-                    class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 items-center justify-center transition-colors">
-                    <X class="w-4 h-4" />
-                </button>
-            </div>
-        </Transition>
     </AppLayout>
 </template>
 

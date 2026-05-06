@@ -8,6 +8,9 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PageHeader from '@/Components/PageHeader.vue';
+import Pagination from '@/Components/Pagination.vue';
+import { useToast } from '@/Composables/useToast';
+import { debounce } from 'lodash-es';
 
 const props = defineProps({
     supplies: Object,
@@ -15,7 +18,7 @@ const props = defineProps({
     stats: {
         type: Object,
         default: () => ({ total: 0, active: 0 })
-    } 
+    }
 });
 
 // --- State Management ---
@@ -29,20 +32,7 @@ const isDeleteModalOpen = ref(false);
 const supplyToDelete = ref(null);
 
 // --- Toast State Management ---
-const toast = ref({ show: false, message: '', type: 'success' });
-const showToast = (message, type = 'success') => {
-    toast.value = { show: true, message, type };
-    setTimeout(() => { toast.value.show = false; }, 3000);
-};
-
-// --- Custom Debounce ---
-const debounce = (fn, delay = 300) => {
-    let timeoutId;
-    return (...args) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => fn(...args), delay);
-    };
-};
+const { showToast } = useToast();
 
 // --- Search & Filter Logic ---
 const search = ref(props.filters.search || '');
@@ -215,7 +205,7 @@ const deleteSupply = () => {
 
 <template>
 
-    <Head title="Supplies Catalog" />
+    <Head title="Supplies Management" />
 
     <AppLayout>
         <div class="relative">
@@ -226,7 +216,7 @@ const deleteSupply = () => {
                 <div class="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
                     <div
                         class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[200px]">
-                        <div class="p-3 rounded-full bg-[#1369a8]/10 text-[#1369a8] mr-4">
+                        <div class="p-3 rounded-full bg-brand-blue-dark/10 	text-brand-blue-dark mr-4">
                             <Package class="w-6 h-6" />
                         </div>
                         <div>
@@ -246,53 +236,54 @@ const deleteSupply = () => {
                         </div>
                     </div>
                 </div>
+                <div
+                    class="bg-white rounded-lg shadow-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
+                    <div class="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
 
-                <div class="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
+                        <button v-if="hasFilters" @click="clearFilters"
+                            class="inline-flex items-center justify-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-lg transition-colors focus:ring-2 focus:ring-gray-200 focus:outline-none whitespace-nowrap">
+                            <X class="w-4 h-4 mr-2" /> Clear Filters
+                        </button>
 
-                    <button v-if="hasFilters" @click="clearFilters"
-                        class="inline-flex items-center justify-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-lg transition-colors focus:ring-2 focus:ring-gray-200 focus:outline-none whitespace-nowrap">
-                        <X class="w-4 h-4 mr-2" /> Clear Filters
-                    </button>
-
-                    <div class="relative w-full sm:w-48">
-                        <select v-model="categoryFilter"
-                            class="block w-full py-2.5 px-3 border border-gray-300 rounded-lg leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-[#1d62c7] focus:border-[#1d62c7] sm:text-sm transition duration-150 ease-in-out cursor-pointer">
-                            <option value="">All Categories</option>
-                            <option value="Office & Store Supplies">Office & Store Supplies</option>
-                            <option value="Tech & Computer Supplies">Tech & Computer Supplies</option>
-                            <option value="Cleaning & Janitorial Supplies">Cleaning & Janitorial Supplies</option>
-                            <option value="General Supplies">General Supplies</option>
-                        </select>
-                    </div>
-
-                    <div class="relative w-full sm:w-36">
-                        <select v-model="statusFilter"
-                            class="block w-full py-2.5 px-3 border border-gray-300 rounded-lg leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-[#1d62c7] focus:border-[#1d62c7] sm:text-sm transition duration-150 ease-in-out cursor-pointer">
-                            <option value="">All Statuses</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-
-                    <div class="relative w-full sm:w-64">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search class="h-5 w-5 text-gray-400" />
+                        <div class="relative w-full sm:w-48">
+                            <select v-model="categoryFilter"
+                                class="block w-full py-2.5 px-3 border border-gray-300 rounded-lg leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-[#1d62c7] focus:border-[#1d62c7] sm:text-sm transition duration-150 ease-in-out cursor-pointer">
+                                <option value="">All Categories</option>
+                                <option value="Office & Store Supplies">Office & Store Supplies</option>
+                                <option value="Tech & Computer Supplies">Tech & Computer Supplies</option>
+                                <option value="Cleaning & Janitorial Supplies">Cleaning & Janitorial Supplies</option>
+                                <option value="General Supplies">General Supplies</option>
+                            </select>
                         </div>
-                        <input v-model="search" type="text" placeholder="Search item code or description..."
-                            class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#1d62c7] focus:border-[#1d62c7] sm:text-sm transition duration-150 ease-in-out" />
-                    </div>
 
-                    <button @click="openAddModal"
-                        class="inline-flex items-center justify-center px-5 py-2.5 bg-[#1d62c7] hover:bg-[#1369a8] text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:ring-2 focus:ring-[#1d62c7]/50 focus:outline-none whitespace-nowrap">
-                        <Plus class="w-5 h-5 mr-2" /> Add Supply
-                    </button>
+                        <div class="relative w-full sm:w-36">
+                            <select v-model="statusFilter"
+                                class="block w-full py-2.5 px-3 border border-gray-300 rounded-lg leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-[#1d62c7] focus:border-[#1d62c7] sm:text-sm transition duration-150 ease-in-out cursor-pointer">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="relative w-full sm:w-64">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search class="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input v-model="search" type="text" placeholder="Search item code or description..."
+                                class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#1d62c7] focus:border-[#1d62c7] sm:text-sm transition duration-150 ease-in-out" />
+                        </div>
+
+                        <button @click="openAddModal" class="btn-primary">
+                            <Plus class="w-5 h-5 mr-2" /> Add Supply
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] overflow-hidden flex flex-col">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-[#1369a8] uppercase tracking-wider text-[11px] font-bold text-white">
+                        <thead class="table-header">
                             <tr>
                                 <th class="px-6 py-4">Item Code</th>
                                 <th class="px-6 py-4">Item Description</th>
@@ -307,7 +298,7 @@ const deleteSupply = () => {
                         <tbody class="divide-y divide-gray-100">
                             <tr v-for="supply in supplies.data" :key="supply.id"
                                 class="hover:bg-blue-50/50 transition-colors">
-                                <td class="px-6 py-4 font-bold text-[#1369a8]">{{ supply.item_code }}</td>
+                                <td class="px-6 py-4 font-bold 	text-brand-blue-dark">{{ supply.item_code }}</td>
                                 <td class="px-6 py-4 font-bold text-gray-900">{{ supply.display_description || 'N/A' }}
                                 </td>
                                 <td class="px-6 py-4 text-gray-600">{{ supply.category }}</td>
@@ -329,7 +320,7 @@ const deleteSupply = () => {
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <button @click="openEditModal(supply)"
-                                        class="text-[#1369a8] hover:text-[#0b426e] transition-colors mr-3"
+                                        class="text-brand-blue-dark hover:text-[#0b426e] transition-colors mr-3"
                                         title="Edit Supply">
                                         <Edit class="w-4 h-4" />
                                     </button>
@@ -354,31 +345,13 @@ const deleteSupply = () => {
                     </table>
                 </div>
 
-                <div v-if="supplies.links && supplies.links.length > 3"
-                    class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-                    <p class="text-sm text-gray-600">
-                        Showing <span class="font-bold text-gray-900">{{ supplies.from || 0 }}</span> to <span
-                            class="font-bold text-gray-900">{{ supplies.to || 0 }}</span> of <span
-                            class="font-bold text-gray-900">{{ supplies.total }}</span> results
-                    </p>
-                    <div class="flex flex-wrap shadow-sm rounded-md">
-                        <template v-for="(link, index) in supplies.links" :key="index">
-                            <div v-if="link.url === null"
-                                class="mr-1 mb-1 px-4 py-2 text-sm text-gray-400 border border-gray-200 rounded"
-                                v-html="link.label"></div>
-                            <button v-else
-                                @click.prevent="router.get(link.url, { search: search, status: statusFilter, category: categoryFilter }, { preserveScroll: true })"
-                                :class="['mr-1 mb-1 px-4 py-2 text-sm border rounded hover:bg-gray-100 focus:border-[#1d62c7] focus:text-[#1d62c7] transition-colors', link.active ? 'bg-[#1369a8] text-white border-[#1369a8] hover:bg-[#0b426e]' : 'bg-white text-gray-700 border-gray-300']"
-                                v-html="link.label">
-                            </button>
-                        </template>
-                    </div>
-                </div>
+                <Pagination :links="supplies.links" :from="supplies.from" :to="supplies.to" :total="supplies.total"
+                    :queryParams="{ search: search, status: statusFilter, category: categoryFilter }" />
             </div>
         </div>
 
         <Modal :show="isModalOpen" @close="closeModal">
-            <div class="bg-[#1369a8] px-6 py-4 border-b border-[#0b426e] flex items-center justify-between">
+            <div class="bg-brand-blue-dark px-6 py-4 border-b border-[#0b426e] flex items-center justify-between">
                 <h2 class="text-lg font-black text-white flex items-center tracking-wide">
                     <Package class="w-5 h-5 mr-2 opacity-80" />
                     {{ isEditMode ? 'Update Supply Information' : 'Add New Supply' }}
@@ -401,7 +374,7 @@ const deleteSupply = () => {
                         <ul v-if="externalResults.length > 0"
                             class="absolute z-50 w-full bg-white border border-gray-200 mt-1 rounded-md shadow-lg max-h-48 overflow-y-auto">
                             <li v-for="ref in externalResults" :key="ref.item_code" @click="selectReference(ref)"
-                                class="p-3 hover:bg-[#1369a8] hover:text-white cursor-pointer transition-colors group">
+                                class="p-3 hover:bg-brand-blue-dark hover:text-white cursor-pointer transition-colors group">
                                 <div class="font-bold text-gray-900 group-hover:text-white">{{ ref.item_code }}</div>
                                 <div class="text-xs text-gray-500 group-hover:text-blue-100 mt-0.5">{{
                                     ref.item_description }}
@@ -496,18 +469,5 @@ const deleteSupply = () => {
             </div>
         </Modal>
 
-        <Transition enter-active-class="transform transition duration-300" enter-from-class="translate-y-2 opacity-0"
-            enter-to-class="translate-y-0 opacity-100" leave-active-class="transition duration-200"
-            leave-from-class="opacity-100" leave-to-class="opacity-0">
-            <div v-if="toast.show"
-                :class="['fixed top-6 right-6 z-[100] flex items-center p-4 space-x-3 bg-white border-l-4 rounded-lg shadow-lg', toast.type === 'error' ? 'border-red-500' : 'border-green-500']">
-                <div
-                    :class="['w-8 h-8 flex items-center justify-center rounded-lg', toast.type === 'error' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600']">
-                    <AlertTriangle v-if="toast.type === 'error'" class="w-5 h-5" />
-                    <Check v-else class="w-5 h-5" />
-                </div>
-                <div class="text-sm font-bold text-gray-800">{{ toast.message }}</div>
-            </div>
-        </Transition>
     </AppLayout>
 </template>

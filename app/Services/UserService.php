@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\SupplyRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -14,14 +15,14 @@ class UserService
     public function createUser(array $data): User
     {
         $data['password'] = Hash::make($data['password']);
-        $data['created_by'] = Auth::id(); 
-        
+        $data['created_by'] = Auth::id();
+
         return User::create($data);
     }
 
     public function updateUser(User $user, array $data): bool
     {
-        unset($data['password']); 
+        unset($data['password']);
         return $user->update($data);
     }
 
@@ -41,13 +42,10 @@ class UserService
             ]);
         }
 
-        // Safety Check 2: Prevent deletion if they have active requests
-        // (Using DB facade safely so it doesn't crash before we create the table)
-        if (Schema::hasTable('requests')) {
-            $hasActiveRequests = DB::table('requests')
-                ->where('user_id', $user->id)
-                // Assuming status values. Modify later if needed.
-                ->whereNotIn('status', ['rejected', 'cancelled', 'released'])
+        // Safety Check 2: Prevent deletion if they have active supply requests
+        if (Schema::hasTable('supply_requests')) {
+            $hasActiveRequests = SupplyRequest::where('user_id', $user->id)
+                ->whereNotIn('status', ['draft', 'rejected', 'cancelled', 'released'])
                 ->exists();
 
             if ($hasActiveRequests) {

@@ -12,7 +12,7 @@ class SupplyService
         return DB::transaction(function () use ($data) {
             return Supply::create([
                 'item_code' => $data['item_code'],
-                'item_description' => $data['item_description'], 
+                'item_description' => $data['item_description'],
                 'category' => $data['category'],
                 'unit' => $data['unit'],
                 'is_active' => $data['is_active'] ?? true,
@@ -31,5 +31,13 @@ class SupplyService
     public function toggleActiveStatus(Supply $supply): bool
     {
         return $supply->update(['is_active' => !$supply->is_active]);
+    }
+
+    public function deleteSupply(Supply $supply): void
+    {
+        // Business check: prevent deletion if supply is used in active requests
+        // We'll do a simple check (if needed), otherwise just delete.
+        // For now, implement same logic as current controller.
+        $supply->delete();
     }
 }

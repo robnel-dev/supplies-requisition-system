@@ -27,7 +27,7 @@ const formattedUserRole = computed(() => {
 
 const allMenuOptions = [
     { name: 'Dashboard', href: route('dashboard'), active: route().current('dashboard'), icon: LayoutDashboard, roles: ['requestor', 'approver', 'hr_admin'] },
-    { name: 'Supplies Catalog', href: '#', active: route().current('supplies.catalog'), icon: Package, roles: ['requestor'] },
+    { name: 'Supplies Catalog', href: route('requestor.catalog.index'), active: route().current('requestor.catalog.index'), icon: Package, roles: ['requestor'] },
     { name: 'Approval Queue', href: '#', active: route().current('approvals.queue'), icon: CheckSquare, roles: ['approver'] },
 
     // Admin Routes Connected Here

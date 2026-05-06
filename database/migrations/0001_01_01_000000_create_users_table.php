@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
 

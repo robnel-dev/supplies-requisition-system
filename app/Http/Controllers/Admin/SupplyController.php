@@ -81,8 +81,8 @@ class SupplyController extends Controller
     public function destroy(Supply $supply)
     {
         Gate::authorize('delete', $supply);
-        $supply->delete();
-        return redirect()->back();
+        $this->supplyService->deleteSupply($supply);
+        return redirect()->back()->with('success', 'Supply deleted.');
     }
 
     public function toggleStatus(Supply $supply)

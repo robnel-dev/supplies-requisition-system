@@ -17,8 +17,8 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'role' => ['required', 'in:hr_admin,approver,requestor'],
-            'department_id' => ['nullable', 'exists:departments,id'],
-            'cost_center' => ['nullable', 'string', 'max:255'],
+            'department_id' => ['required', 'exists:departments,id'],
+            'cost_center' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
