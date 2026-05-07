@@ -140,6 +140,11 @@ class CartService
         abort_unless($draft, 404);
 
         $draft->items()->where('id', $itemId)->delete();
+
+        // If no more items, delete the empty draft so it doesn't block reopens.
+        if ($draft->items()->count() === 0) {
+            $draft->delete();
+        }
     }
 
     /**
@@ -159,11 +164,15 @@ class CartService
      *          WHERE request_date IS NOT NULL AND YEAR(request_date) = $year,
      *          which is accurate even for resubmitted requests.
      */
+    /**
+     * Submit the draft for approval.
+     *
+     * - If the draft already has a transaction_id (reopened request), keep it.
+     * - Otherwise generate a new one.
+     */
     public function checkout($user): string
     {
         return DB::transaction(function () use ($user) {
-
-            // FIX 2A: Fetch AND lock the draft inside the transaction.
             $draft = SupplyRequest::where('user_id', $user->id)
                 ->where('status', SupplyRequest::STATUS_DRAFT)
                 ->lockForUpdate()
@@ -177,27 +186,24 @@ class CartService
                 throw new \Exception('Cannot submit an empty request.');
             }
 
-            $year       = now()->format('Y');
-            $costCenter = $user->cost_center;
+            // Determine the transaction_id
+            if ($draft->transaction_id) {
+                // Re‑using existing ID – no need to regenerate
+                $transactionId = $draft->transaction_id;
+            } else {
+                // Fresh draft – generate new ID
+                $year       = now()->format('Y');
+                $costCenter = $user->cost_center;
 
-            // FIX 2B: NULL the old transaction_id first so the UNIQUE constraint
-            // does not block us when generating the new one for resubmissions.
-            $draft->update(['transaction_id' => null]);
+                // Find the max series for this cost‑center & year to avoid gaps
+                $maxSeries = SupplyRequest::where('transaction_id', 'like', "{$costCenter}-{$year}-%")
+                    ->max(DB::raw("CAST(SUBSTRING_INDEX(transaction_id, '-', -1) AS UNSIGNED)"));
 
-            // FIX 2C: Count using request_date (the submission date), not created_at.
-            // This gives an accurate per-cost-center series number per calendar year,
-            // even if the request was originally created in a previous year.
-            $count = SupplyRequest::join('users', 'supply_requests.user_id', '=', 'users.id')
-                ->where('users.cost_center', $costCenter)
-                ->whereNotNull('supply_requests.transaction_id')
-                ->whereYear('supply_requests.request_date', $year)
-                ->lockForUpdate()
-                ->count();
+                $series        = ($maxSeries ?? 0) + 1;
+                $transactionId = sprintf('%s-%s-%06d', $costCenter, $year, $series);
+            }
 
-            $series        = $count + 1;
-            $transactionId = sprintf('%s-%s-%06d', $costCenter, $year, $series);
-
-            // Snapshot the currently requested quantity at submission time.
+            // Snapshot the requested quantity
             $draft->items()->update(['original_quantity' => DB::raw('quantity')]);
 
             $draft->update([
@@ -254,8 +260,6 @@ class CartService
             // are freshly generated when the user resubmits.
             $locked->update([
                 'status'         => SupplyRequest::STATUS_DRAFT,
-                'transaction_id' => null,   // Will be regenerated on next checkout
-                'request_date'   => null,   // Will be set fresh on next checkout
             ]);
 
             $locked->timelines()->create([

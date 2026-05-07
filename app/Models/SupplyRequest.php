@@ -64,7 +64,7 @@ class SupplyRequest extends Model
 
     public function timelines(): HasMany
     {
-        return $this->hasMany(RequestTimeline::class)->orderBy('created_at', 'asc');
+        return $this->hasMany(RequestTimeline::class)->orderBy('created_at', 'desc');
     }
 
     public function approver(): BelongsTo

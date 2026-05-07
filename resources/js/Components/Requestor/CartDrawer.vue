@@ -107,6 +107,10 @@ const handleConfirmAction = () => {
                         <h2 class="text-lg font-black text-white flex items-center tracking-wide">
                             <ScrollText class="w-5 h-5 mr-2" /> Request List Draft
                         </h2>
+                        <!-- Show transaction ID if we are editing -->
+                        <p v-if="cart?.transaction_id" class="text-xs text-white/80 mt-0.5 font-mono">
+                            | Editing {{ cart.transaction_id }}
+                        </p>
                         <button @click="$emit('close')" class="text-white/80 hover:text-white text-2xl leading-none">
                             &times;
                         </button>
@@ -150,7 +154,7 @@ const handleConfirmAction = () => {
                                         <button @click="updateQuantity(item, item.quantity - 1)"
                                             class="px-3 py-1.5 bg-red-500 hover:bg-red-700 text-white text-sm transition">−</button>
                                         <span class="px-4 text-sm font-semibold text-gray-800 bg-white">{{ item.quantity
-                                        }}</span>
+                                            }}</span>
                                         <button @click="updateQuantity(item, item.quantity + 1)"
                                             class="px-3 py-1.5 bg-green-600 hover:bg-green-800 text-white text-sm transition">+</button>
                                     </div>

@@ -1,12 +1,12 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
-import { router, Head } from '@inertiajs/vue3';
+import { router, Head , Link } from '@inertiajs/vue3';
 import debounce from 'lodash-es/debounce';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import AddToCartModal from '@/Components/Requestor/AddToCartModal.vue';
 import PageHeader from '@/Components/PageHeader.vue';
-import { X, Search, Import } from 'lucide-vue-next';
+import { X, Search, Import, RefreshCcw ,} from 'lucide-vue-next';
 import CartDrawer from '@/Components/Requestor/CartDrawer.vue';
 import { useToast } from '@/Composables/useToast';
 
@@ -15,6 +15,10 @@ const props = defineProps({
     filters: Object,
     categories: Array,
     cart: Object,
+    editingTransactionId: {
+        type: String,
+        default: null,
+    },
 });
 
 // State for search and filtering
@@ -78,6 +82,24 @@ onUnmounted(() => document.removeEventListener('keydown', handleEscape));
             <!-- Header -->
             <PageHeader title="Supplies Catalog" description="Browse, search, and add items to your request list." />
 
+            <!-- Editing Banner -->
+            <div v-if="editingTransactionId"
+                class="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center gap-3">
+                <RefreshCcw class="w-5 h-5 text-amber-600 flex-shrink-0" />
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-amber-800">
+                        You are editing request
+                        <span class="font-mono font-extrabold text-amber-900">{{ editingTransactionId }}</span>
+                    </p>
+                    <p class="text-xs text-amber-600 mt-0.5">
+                        Make your changes and re‑submit when ready.
+                    </p>
+                </div>
+                <Link :href="route('requestor.requests.show', cart?.id)"
+                    class="text-xs font-bold text-amber-700 hover:text-amber-900 underline">
+                View Details
+                </Link>
+            </div>
 
             <!-- Filters -->
             <div

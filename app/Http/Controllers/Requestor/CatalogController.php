@@ -44,7 +44,8 @@ class CatalogController extends Controller
             'supplies'   => $supplies,
             'filters'    => $request->only(['search', 'category']),
             'categories' => $categories,
-            'cart'       => $draft?->load('items'),   // null if no draft
+            'cart'       => $draft?->load('items'),   
+            'editingTransactionId'  => $draft?->transaction_id,   
         ]);
     }
 }
