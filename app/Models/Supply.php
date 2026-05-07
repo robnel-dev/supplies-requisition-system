@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Supply extends Model
@@ -25,5 +26,14 @@ class Supply extends Model
     {
         // Match local item_code to external item_code
         return $this->hasOne(ExternalSupplyReference::class, 'item_code', 'item_code');
+    }
+
+    /**
+     * A supply can appear in many request items.
+     * Used for the "in-use" check before deletion.
+     */
+    public function requestItems(): HasMany
+    {
+        return $this->hasMany(SupplyRequestItem::class);
     }
 }

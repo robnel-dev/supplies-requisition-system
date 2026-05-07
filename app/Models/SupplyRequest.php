@@ -5,9 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\RequestTimeline;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SupplyRequest extends Model
 {
+    use HasFactory;
+
+
     protected $fillable = [
         'transaction_id',
         'user_id',
@@ -26,10 +31,19 @@ class SupplyRequest extends Model
     ];
 
     protected $casts = [
-        'request_date'        => 'datetime',
-        'manager_approved_at' => 'datetime',
+        'request_date'         => 'datetime',
+        'manager_approved_at'  => 'datetime',
         'hr_admin_released_at' => 'datetime',
     ];
+
+    // --- Status constants for clarity ---
+    const STATUS_DRAFT            = 'draft';
+    const STATUS_PENDING_APPROVAL = 'pending_approval';
+    const STATUS_APPROVED         = 'approved';
+    const STATUS_REJECTED         = 'rejected';
+    const STATUS_RELEASED         = 'released';
+    const STATUS_CANCELLED        = 'cancelled';
+    const STATUS_ARCHIVED         = 'archived';
 
     // --- Relationships ---
 
@@ -46,6 +60,11 @@ class SupplyRequest extends Model
     public function items(): HasMany
     {
         return $this->hasMany(SupplyRequestItem::class);
+    }
+
+    public function timelines(): HasMany
+    {
+        return $this->hasMany(RequestTimeline::class)->orderBy('created_at', 'asc');
     }
 
     public function approver(): BelongsTo
