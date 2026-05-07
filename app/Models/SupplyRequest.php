@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SupplyRequest extends Model
 {
@@ -23,20 +25,41 @@ class SupplyRequest extends Model
         'hr_admin_notes',
     ];
 
-    public function user()
+    protected $casts = [
+        'request_date'        => 'datetime',
+        'manager_approved_at' => 'datetime',
+        'hr_admin_released_at' => 'datetime',
+    ];
+
+    // --- Relationships ---
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-    public function department()
+
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }
-    public function items()
+
+    public function items(): HasMany
     {
         return $this->hasMany(SupplyRequestItem::class);
     }
 
-    protected $casts = [
-        'request_date' => 'datetime',
-    ];
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approver_id');
+    }
+
+    public function managerApprover(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'manager_approved_by');
+    }
+
+    public function hrAdminReleaser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'hr_admin_released_by');
+    }
 }

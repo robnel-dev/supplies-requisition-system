@@ -6,7 +6,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Supplies Requisition System';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -22,6 +22,7 @@ createInertiaApp({
             .mount(el);
     },
     progress: {
-        color: '#4B5563',
+        color: '#159cdb',   // brand-blue
+        showSpinner: false, // We have our own spinner in AppLayout
     },
 });

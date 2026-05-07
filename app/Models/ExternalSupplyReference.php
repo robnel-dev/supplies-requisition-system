@@ -20,10 +20,9 @@ class ExternalSupplyReference extends Model
         'stock_quantity',
         'allocated_quantity',
         'allocatable_quantity',
-        'MBORTY', //freefield
-        'MBSTAT' //freefield
+        'MBORTY',
+        'MBSTAT',
     ];
-
 
     public function supply()
     {

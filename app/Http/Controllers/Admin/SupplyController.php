@@ -20,28 +20,17 @@ class SupplyController extends Controller
     {
         Gate::authorize('viewAny', Supply::class);
 
-        $search = $request->input('search');
-        $status = $request->input('status');
+        $search   = $request->input('search');
+        $status   = $request->input('status');
         $category = $request->input('category');
 
-        // CROSS-DATABASE  
-        $matchingExternalCodes = [];
-        if ($search) {
-            $matchingExternalCodes = ExternalSupplyReference::where('item_code', 'like', "%{$search}%")
-                ->orWhere('item_description', 'like', "%{$search}%")
-                ->pluck('item_code')
-                ->toArray();
-        }
 
         $supplies = Supply::with('reference')
-            ->when($search, function ($query) use ($search, $matchingExternalCodes) {
-                $query->where(function ($q) use ($search, $matchingExternalCodes) {
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('item_code', 'like', "%{$search}%")
-                        ->orWhere('item_description', 'like', "%{$search}%");
-
-                    if (!empty($matchingExternalCodes)) {
-                        $q->orWhereIn('item_code', $matchingExternalCodes);
-                    }
+                        ->orWhere('item_description', 'like', "%{$search}%")
+                        ->orWhere('category', 'like', "%{$search}%");
                 });
             })
             ->when($status !== null && $status !== '', function ($query) use ($status) {
@@ -56,9 +45,9 @@ class SupplyController extends Controller
 
         return Inertia::render('Admin/Supplies/Index', [
             'supplies' => $supplies,
-            'filters' => $request->only(['search', 'status', 'category']),
-            'stats' => [
-                'total' => Supply::count(),
+            'filters'  => $request->only(['search', 'status', 'category']),
+            'stats'    => [
+                'total'  => Supply::count(),
                 'active' => Supply::where('is_active', true)->count(),
             ],
         ]);
@@ -89,20 +78,21 @@ class SupplyController extends Controller
     {
         Gate::authorize('update', $supply);
         $this->supplyService->toggleActiveStatus($supply);
-        return redirect()->back()->with('success', 'Status toggled successfully.');
+        return redirect()->back()->with('success', 'Status updated successfully.');
     }
 
     public function searchExternal(Request $request)
     {
-        $term = $request->input('term');
+        $term = $request->input('term', '');
 
-        if (!$term) {
+        if (strlen($term) < 2) {
             return response()->json([]);
         }
 
         $references = ExternalSupplyReference::where('item_code', 'like', "%{$term}%")
             ->orWhere('item_description', 'like', "%{$term}%")
-            ->limit(5)
+            ->select(['item_code', 'item_description', 'unit_of_measure', 'stock_quantity', 'allocatable_quantity'])
+            ->limit(8)
             ->get();
 
         return response()->json($references);

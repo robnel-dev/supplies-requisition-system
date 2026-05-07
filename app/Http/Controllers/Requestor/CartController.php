@@ -13,34 +13,47 @@ class CartController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'supply_id' => ['required', 'exists:supplies,id'],
-            'quantity' => ['required', 'integer', 'min:1']
+            'supply_id' => ['required', 'integer', 'exists:supplies,id'],
+            'quantity'  => ['required', 'integer', 'min:1', 'max:9999'],
         ]);
 
-        $this->cartService->addItem($request->user(), $request->supply_id, $request->quantity);
+        $this->cartService->addItem(
+            $request->user(),
+            (int) $request->supply_id,
+            (int) $request->quantity
+        );
 
-        return back()->with('success', 'Item added to cart.');
+        return back()->with('success', 'Item added to your request list draft.');
     }
 
     public function update(Request $request, $itemId)
     {
-        $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
-        $this->cartService->updateItemQuantity($request->user(), $itemId, $request->quantity);
-        return back();
+        $request->validate([
+            'quantity' => ['required', 'integer', 'min:1', 'max:9999'],
+        ]);
+
+        $this->cartService->updateItemQuantity(
+            $request->user(),
+            (int) $itemId,
+            (int) $request->quantity
+        );
+
+        return back()->with('success', 'Item quantity updated.');
     }
 
     public function destroy(Request $request, $itemId)
     {
-        $this->cartService->removeItem($request->user(), $itemId);
-        return back()->with('success', 'Item removed.');
+        $this->cartService->removeItem($request->user(), (int) $itemId);
+        return back()->with('success', 'Item removed from your request list.');
     }
 
     public function checkout(Request $request)
     {
         try {
-            $this->cartService->checkout($request->user());
-            // Redirect to a success/history page. For now, back with success message.
-            return back()->with('success', 'Request submitted successfully and is pending approval.');
+            $transactionId = $this->cartService->checkout($request->user());
+            return back()->with('success', "Request #{$transactionId} submitted and is now pending approval.");
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors());
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }

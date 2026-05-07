@@ -6,17 +6,17 @@ use App\Models\SupplyRequest;
 use App\Models\SupplyRequestItem;
 use App\Models\Supply;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class CartService
 {
-    // Fetches the active draft or creates one if it doesn't exist
-    public function getOrCreateDraft($user)
+
+    // fetches the active draft or creates one if it doesn't exist.
+    public function getOrCreateDraft($user): SupplyRequest
     {
-        return SupplyRequest::with('items')->firstOrCreate(
+        return SupplyRequest::with('items.supply')->firstOrCreate(
             [
                 'user_id' => $user->id,
-                'status' => 'draft'
+                'status'  => 'draft',
             ],
             [
                 'department_id' => $user->department_id,
@@ -24,70 +24,81 @@ class CartService
         );
     }
 
-    // Adds or updates an item in the draft
-    public function addItem($user, $supplyId, $quantity)
+
+    // Adds or updates an item in the draft.
+
+    public function addItem($user, int $supplyId, int $quantity): void
     {
-        $draft = $this->getOrCreateDraft($user);
-        $supply = Supply::findOrFail($supplyId);
+        $draft  = $this->getOrCreateDraft($user);
+        $supply = Supply::where('id', $supplyId)->where('is_active', true)->firstOrFail();
 
         $item = SupplyRequestItem::where('supply_request_id', $draft->id)
             ->where('supply_id', $supply->id)
             ->first();
 
         if ($item) {
+            // Increment quantity if item already in cart
             $item->increment('quantity', $quantity);
         } else {
             $draft->items()->create([
-                'supply_id' => $supply->id,
-                'item_code' => $supply->item_code,
+                'supply_id'        => $supply->id,
+                'item_code'        => $supply->item_code,
                 'item_description' => $supply->item_description,
-                'item_unit' => $supply->unit,
-                'quantity' => $quantity,
+                'item_unit'        => $supply->unit,
+                'quantity'         => $quantity,
             ]);
         }
     }
 
-    // Updates quantity directly
-    public function updateItemQuantity($user, $itemId, $quantity)
+
+    // Updates the quantity of a specific cart item.
+    public function updateItemQuantity($user, int $itemId, int $quantity): void
     {
         $draft = $this->getOrCreateDraft($user);
+
+        // Only update items that belong to THIS user's draft
         $draft->items()->where('id', $itemId)->update(['quantity' => $quantity]);
     }
 
-    // Removes an item
-    public function removeItem($user, $itemId)
+
+    // Removes an item from the cart.
+    public function removeItem($user, int $itemId): void
     {
         $draft = $this->getOrCreateDraft($user);
         $draft->items()->where('id', $itemId)->delete();
     }
 
-    // Submits the draft into Pending Approval
-    public function checkout($user)
+    // Submits the draft for approval.
+    public function checkout($user): string
     {
         return DB::transaction(function () use ($user) {
-            $draft = $this->getOrCreateDraft($user);
+            // Lock the draft row to prevent duplicate submissions
+            $draft = SupplyRequest::where('user_id', $user->id)
+                ->where('status', 'draft')
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ($draft->items()->count() === 0) {
-                throw new \Exception("Cannot submit an empty request.");
+                throw new \Exception('Cannot submit an empty request.');
             }
 
-            // Generate Transaction ID (e.g., COST_CENTER-YYYY-0001)
-            $year = now()->format('Y');
-            $latest = SupplyRequest::whereYear('request_date', $year)
-                ->whereNotNull('request_date')
-                ->count() + 1;
+            // Generate Transaction ID atomically
+            $year   = now()->format('Y');
+            $count  = SupplyRequest::whereYear('created_at', $year)
+                ->whereNotNull('transaction_id')
+                ->lockForUpdate()
+                ->count();
 
-            $transactionId = sprintf("%s-%s-%06d", $user->cost_center, $year, $latest);
+            $series        = $count + 1;
+            $transactionId = sprintf('%s-%s-%06d', $user->cost_center, $year, $series);
 
-            // Lock original quantities and change status
-            foreach ($draft->items as $item) {
-                $item->update(['original_quantity' => $item->quantity]);
-            }
+            // Lock original quantities at submission time
+            $draft->items()->update(['original_quantity' => DB::raw('quantity')]);
 
             $draft->update([
-                'status' => 'pending_approval',
+                'status'         => 'pending_approval',
                 'transaction_id' => $transactionId,
-                'request_date' => now()
+                'request_date'   => now(),
             ]);
 
             return $transactionId;
