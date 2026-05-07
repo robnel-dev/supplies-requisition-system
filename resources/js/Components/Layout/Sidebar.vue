@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
-import { LayoutDashboard, Package, CheckSquare, Users, Building, X, BaggageClaim, ClipboardList } from 'lucide-vue-next';
+import { LayoutDashboard, Package, CheckSquare, Users, Building, X, BaggageClaim, ClipboardList, Archive } from 'lucide-vue-next';
 import NavItem from '@/Components/Layout/NavItem.vue';
 
 const props = defineProps({
@@ -40,8 +40,15 @@ const allMenuOptions = [
     {
         name: 'Active Requests',
         href: route('requestor.requests.index'),
-        active: route().current('requestor.requests.*'),
+        active: route().current('requestor.requests.*') && !route().current('requestor.requests.archived*'),
         icon: ClipboardList,
+        roles: ['requestor']
+    },
+    {
+        name: 'Archived Requests',
+        href: route('requestor.requests.archived'),
+        active: route().current('requestor.requests.archived*'),
+        icon: Archive,
         roles: ['requestor']
     },
 

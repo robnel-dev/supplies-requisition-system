@@ -1,10 +1,10 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft, Clock, CheckCircle2, XCircle, Package, Archive,
     Send, User, Building2, CalendarDays, Hash, AlertTriangle,
-    FileText, CheckCheck, Ban
+    FileText, CheckCheck, Ban, Pencil, RefreshCcw
 } from 'lucide-vue-next';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Modal from '@/Components/Modal.vue';
@@ -16,8 +16,9 @@ const props = defineProps({
 });
 
 const { showToast } = useToast();
+const page = usePage();
 
-// ── Status config ──────────────────────────────────────────────────────────
+// ── Status config ───────────────────────────────────────────────────────────
 const statusConfig = {
     pending_approval: { label: 'Pending Approval', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: Clock },
     approved: { label: 'Approved', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircle2 },
@@ -30,7 +31,7 @@ const statusConfig = {
 const getStatus = (status) =>
     statusConfig[status] ?? { label: status, color: 'bg-gray-100 text-gray-600', icon: Clock };
 
-// ── Timeline icon config ───────────────────────────────────────────────────
+// ── Timeline icon config ────────────────────────────────────────────────────
 const timelineIcons = {
     submitted: { icon: Send, color: 'bg-blue-500', ring: 'ring-blue-100' },
     approved: { icon: CheckCheck, color: 'bg-green-500', ring: 'ring-green-100' },
@@ -38,6 +39,7 @@ const timelineIcons = {
     released: { icon: Package, color: 'bg-emerald-500', ring: 'ring-emerald-100' },
     cancelled: { icon: Ban, color: 'bg-gray-400', ring: 'ring-gray-100' },
     archived: { icon: Archive, color: 'bg-gray-400', ring: 'ring-gray-100' },
+    reopened: { icon: RefreshCcw, color: 'bg-orange-400', ring: 'ring-orange-100' },
 };
 
 const getTimelineConfig = (action) =>
@@ -60,19 +62,46 @@ const formatDateShort = (date) => {
     });
 };
 
-const canCancel = computed(() =>
-    props.supplyRequest.status === 'pending_approval'
-);
+// Only pending_approval can be cancelled or edited
+const canCancel = computed(() => props.supplyRequest.status === 'pending_approval');
+const canEdit = computed(() => props.supplyRequest.status === 'pending_approval');
 
-// ── Cancel Modal ───────────────────────────────────────────────────────────
+// ── Cancel Modal ─────────────────────────────────────────────────────────────
 const isCancelModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const isProcessing = ref(false);
 
 const confirmCancel = () => {
+    isProcessing.value = true;
     router.patch(route('requestor.requests.cancel', props.supplyRequest.id), {}, {
+        onSuccess: () => { isCancelModalOpen.value = false; showToast('Request cancelled successfully.'); },
+        onFinish: () => { isProcessing.value = false; },
+    });
+};
+
+// ── Edit / Reopen ─────────────────────────────────────────────────────────────
+const confirmEdit = () => {
+    isProcessing.value = true;
+    router.patch(route('requestor.requests.reopen', props.supplyRequest.id), {}, {
         onSuccess: () => {
-            isCancelModalOpen.value = false;
-            showToast('Request cancelled successfully.');
+            isEditModalOpen.value = false;
+            // Server redirects to catalog — no client-side redirect needed
         },
+        /**
+         * FIX: Previously, any error here was caught by onError with a generic
+         * errors object that wasn't properly keyed. The Vue code read
+         * `errors.error` but the server was sending `errors.reopen`.
+         *
+         * Now: RequestController sends withErrors(['reopen' => $message]).
+         * We read errors.reopen here. If it's missing, we fall back to a
+         * safe default message.
+         */
+        onError: (errors) => {
+            isEditModalOpen.value = false;
+            const message = errors.reopen ?? errors.error ?? 'Could not reopen request. Please try again.';
+            showToast(message, 'error');
+        },
+        onFinish: () => { isProcessing.value = false; },
     });
 };
 </script>
@@ -95,15 +124,13 @@ const confirmCancel = () => {
         <!-- Page title row -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
-                <h1 class="text-2xl font-black text-gray-900 tracking-tight">
-                    Request Details
-                </h1>
+                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Request Details</h1>
                 <p class="text-sm text-gray-500 mt-1 font-mono tracking-wide">
                     {{ supplyRequest.transaction_id }}
                 </p>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-wrap">
                 <!-- Status badge -->
                 <span :class="[
                     'inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border',
@@ -113,9 +140,16 @@ const confirmCancel = () => {
                     {{ getStatus(supplyRequest.status).label }}
                 </span>
 
+                <!-- Edit button (only when pending) -->
+                <button v-if="canEdit" @click="isEditModalOpen = true"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-amber-500 rounded-lg border border-amber-600 hover:bg-amber-50 hover:text-amber-700 transition-colors">
+                    <Pencil class="w-4 h-4" />
+                    Edit Request
+                </button>
+
                 <!-- Cancel button (only when pending) -->
-                <button v-if="canCancel" @click="isCancelModalOpen = true" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-red-600 rounded-lg border border-red-700 
-           hover:bg-red-50 hover:text-red-700 transition-colors">
+                <button v-if="canCancel" @click="isCancelModalOpen = true"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-red-600 rounded-lg border border-red-700 hover:bg-red-50 hover:text-red-700 transition-colors">
                     <Ban class="w-4 h-4" />
                     Cancel Request
                 </button>
@@ -124,7 +158,7 @@ const confirmCancel = () => {
 
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-            <!-- ── Left Column: Details + Items ──────────────────────────── -->
+            <!-- ── Left Column: Details + Items ─────────────────────────── -->
             <div class="xl:col-span-2 flex flex-col gap-6">
 
                 <!-- Request Info Card -->
@@ -138,6 +172,7 @@ const confirmCancel = () => {
 
                     <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
 
+                        <!-- Transaction ID -->
                         <div class="flex items-start gap-3">
                             <div class="p-2 rounded-lg bg-blue-50 text-brand-blue-dark mt-0.5">
                                 <Hash class="w-4 h-4" />
@@ -151,6 +186,7 @@ const confirmCancel = () => {
                             </div>
                         </div>
 
+                        <!-- Request Date -->
                         <div class="flex items-start gap-3">
                             <div class="p-2 rounded-lg bg-blue-50 text-brand-blue-dark mt-0.5">
                                 <CalendarDays class="w-4 h-4" />
@@ -163,6 +199,7 @@ const confirmCancel = () => {
                             </div>
                         </div>
 
+                        <!-- Department -->
                         <div class="flex items-start gap-3">
                             <div class="p-2 rounded-lg bg-blue-50 text-brand-blue-dark mt-0.5">
                                 <Building2 class="w-4 h-4" />
@@ -176,6 +213,7 @@ const confirmCancel = () => {
                             </div>
                         </div>
 
+                        <!-- Approver -->
                         <div class="flex items-start gap-3">
                             <div class="p-2 rounded-lg bg-blue-50 text-brand-blue-dark mt-0.5">
                                 <User class="w-4 h-4" />
@@ -192,27 +230,32 @@ const confirmCancel = () => {
                             </div>
                         </div>
 
-                        <!-- M3 Numbers (visible only if present) -->
-                        <div v-if="supplyRequest.m3_ro_number" class="flex items-start gap-3">
-                            <div class="p-2 rounded-lg bg-emerald-50 text-emerald-700 mt-0.5">
+                        <!-- M3 RO Number (always shown) -->
+                        <div class="flex items-start gap-3">
+                            <div class="p-2 rounded-lg mt-0.5"
+                                :class="supplyRequest.m3_ro_number ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-400'">
                                 <Hash class="w-4 h-4" />
                             </div>
                             <div>
                                 <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">M3 RO Number</p>
-                                <p class="text-sm font-bold text-gray-900 font-mono mt-0.5">
-                                    {{ supplyRequest.m3_ro_number }}
+                                <p class="text-sm font-bold font-mono mt-0.5"
+                                    :class="supplyRequest.m3_ro_number ? 'text-gray-900' : 'text-gray-400 italic font-normal'">
+                                    {{ supplyRequest.m3_ro_number ?? 'Pending — to be filled by HR' }}
                                 </p>
                             </div>
                         </div>
 
-                        <div v-if="supplyRequest.m3_dr_number" class="flex items-start gap-3">
-                            <div class="p-2 rounded-lg bg-emerald-50 text-emerald-700 mt-0.5">
+                        <!-- M3 DR Number (always shown) -->
+                        <div class="flex items-start gap-3">
+                            <div class="p-2 rounded-lg mt-0.5"
+                                :class="supplyRequest.m3_dr_number ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-400'">
                                 <Hash class="w-4 h-4" />
                             </div>
                             <div>
                                 <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">M3 DR Number</p>
-                                <p class="text-sm font-bold text-gray-900 font-mono mt-0.5">
-                                    {{ supplyRequest.m3_dr_number }}
+                                <p class="text-sm font-bold font-mono mt-0.5"
+                                    :class="supplyRequest.m3_dr_number ? 'text-gray-900' : 'text-gray-400 italic font-normal'">
+                                    {{ supplyRequest.m3_dr_number ?? 'Pending — to be filled by HR' }}
                                 </p>
                             </div>
                         </div>
@@ -247,17 +290,13 @@ const confirmCancel = () => {
                             <tbody class="divide-y divide-gray-100">
                                 <tr v-for="(item, i) in supplyRequest.items" :key="item.id" class="hover:bg-gray-50/60">
                                     <td class="px-5 py-3.5 text-gray-400 font-medium text-xs">{{ i + 1 }}</td>
-
                                     <td class="px-5 py-3.5">
-                                        <span class="font-mono text-xs font-bold text-brand-blue-dark">
-                                            {{ item.item_code }}
-                                        </span>
+                                        <span class="font-mono text-xs font-bold text-brand-blue-dark">{{ item.item_code
+                                        }}</span>
                                     </td>
-
                                     <td class="px-5 py-3.5 text-gray-700 max-w-xs">
                                         <span class="line-clamp-2">{{ item.item_description || '—' }}</span>
                                     </td>
-
                                     <td class="px-5 py-3.5 text-center">
                                         <span class="font-bold text-gray-900">{{ item.quantity }}</span>
                                         <span v-if="item.original_quantity && item.original_quantity !== item.quantity"
@@ -265,23 +304,14 @@ const confirmCancel = () => {
                                             (was {{ item.original_quantity }})
                                         </span>
                                     </td>
-
-                                    <td class="px-5 py-3.5 text-center text-gray-600 capitalize">
-                                        {{ item.item_unit }}
+                                    <td class="px-5 py-3.5 text-center text-gray-600 capitalize">{{ item.item_unit }}
                                     </td>
-
                                     <td class="px-5 py-3.5 text-center">
                                         <span v-if="item.budget_type" :class="[
                                             'px-2 py-1 rounded text-xs font-bold uppercase',
-                                            item.budget_type === 'budgeted'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-orange-100 text-orange-700'
-                                        ]">
-                                            {{ item.budget_type }}
-                                        </span>
-                                        <span v-else class="text-xs text-gray-400 italic">
-                                            —
-                                        </span>
+                                            item.budget_type === 'budgeted' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                                        ]">{{ item.budget_type }}</span>
+                                        <span v-else class="text-xs text-gray-400 italic">—</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -291,7 +321,7 @@ const confirmCancel = () => {
 
             </div>
 
-            <!-- ── Right Column: Timeline ─────────────────────────────────── -->
+            <!-- ── Right Column: Timeline ──────────────────────────────────── -->
             <div class="xl:col-span-1">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-6">
                     <div class="bg-brand-blue-dark px-6 py-4">
@@ -302,16 +332,12 @@ const confirmCancel = () => {
                     </div>
 
                     <div class="p-6">
-                        <!-- Has timeline entries -->
                         <div v-if="supplyRequest.timelines.length > 0" class="relative">
-
-                            <!-- Vertical connector line -->
                             <div class="absolute left-4 top-4 bottom-4 w-0.5 bg-gray-200" aria-hidden="true" />
 
                             <div class="flex flex-col gap-6">
                                 <div v-for="(event, i) in supplyRequest.timelines" :key="event.id"
                                     class="relative flex gap-4 items-start">
-                                    <!-- Icon circle -->
                                     <div :class="[
                                         'relative z-10 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ring-4',
                                         getTimelineConfig(event.action).color,
@@ -320,8 +346,6 @@ const confirmCancel = () => {
                                         <component :is="getTimelineConfig(event.action).icon"
                                             class="w-4 h-4 text-white" />
                                     </div>
-
-                                    <!-- Content -->
                                     <div class="flex-1 min-w-0 pb-1">
                                         <p class="text-sm font-semibold text-gray-900 leading-snug">
                                             {{ event.description }}
@@ -337,7 +361,6 @@ const confirmCancel = () => {
                             </div>
                         </div>
 
-                        <!-- No timeline yet -->
                         <div v-else class="text-center py-8 text-gray-400">
                             <Clock class="w-8 h-8 mx-auto mb-2 opacity-30" />
                             <p class="text-sm">No timeline events yet.</p>
@@ -363,11 +386,41 @@ const confirmCancel = () => {
                     </p>
                 </div>
                 <div class="flex justify-center gap-4 mt-8">
-                    <button @click="isCancelModalOpen = false" class="btn-secondary">
-                        Keep Request
+                    <button @click="isCancelModalOpen = false" class="btn-secondary" :disabled="isProcessing">Keep
+                        Request</button>
+                    <button @click="confirmCancel" class="btn-danger" :disabled="isProcessing">
+                        {{ isProcessing ? 'Cancelling...' : 'Yes, Cancel It' }}
                     </button>
-                    <button @click="confirmCancel" class="btn-danger">
-                        Yes, Cancel It
+                </div>
+            </div>
+        </Modal>
+
+        <!-- Edit Confirm Modal -->
+        <Modal :show="isEditModalOpen" @close="isEditModalOpen = false" maxWidth="md">
+            <div class="p-6">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-amber-100">
+                    <Pencil class="w-6 h-6 text-amber-600" />
+                </div>
+                <div class="mt-4 text-center">
+                    <h3 class="text-lg font-black text-gray-900">Edit Request</h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        This will reopen
+                        <span class="font-bold text-gray-800">{{ supplyRequest.transaction_id }}</span>
+                        for editing. You will be redirected to the Supplies Catalog.
+                        <br><br>
+                        <span class="text-amber-700 font-semibold">
+                            After making your changes, you must re-submit the request.
+                        </span>
+                    </p>
+                </div>
+                <div class="flex justify-center gap-4 mt-8">
+                    <button @click="isEditModalOpen = false" class="btn-secondary"
+                        :disabled="isProcessing">Cancel</button>
+                    <button @click="confirmEdit"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                        :disabled="isProcessing">
+                        <RefreshCcw class="w-4 h-4" :class="isProcessing ? 'animate-spin' : ''" />
+                        {{ isProcessing ? 'Reopening...' : 'Yes, Edit It' }}
                     </button>
                 </div>
             </div>

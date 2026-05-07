@@ -29,7 +29,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('users', UserController::class)
                 ->except(['create', 'show', 'edit']);
 
-            // Custom routes BEFORE resource to avoid wildcard conflict
             Route::get('supplies/search-external', [SupplyController::class, 'searchExternal'])
                 ->name('supplies.search-external');
             Route::patch('supplies/{supply}/toggle-status', [SupplyController::class, 'toggleStatus'])
@@ -58,13 +57,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/cart/checkout', [CartController::class, 'checkout'])
                 ->name('cart.checkout');
 
-            // Active Requests
+            // Supply Requests
             Route::get('/requests', [RequestController::class, 'index'])
                 ->name('requests.index');
+            Route::get('/requests/archived', [RequestController::class, 'archived'])
+                ->name('requests.archived');
+            Route::get('/requests/archived/{supplyRequest}', [RequestController::class, 'showArchived'])
+                ->name('requests.archived.show');
             Route::get('/requests/{supplyRequest}', [RequestController::class, 'show'])
                 ->name('requests.show');
             Route::patch('/requests/{supplyRequest}/cancel', [RequestController::class, 'cancel'])
                 ->name('requests.cancel');
+            Route::patch('/requests/{supplyRequest}/reopen', [RequestController::class, 'reopen'])
+                ->name('requests.reopen');
         });
 
     // ─── Approver (Phase 3) ───────────────────────────────────────────────

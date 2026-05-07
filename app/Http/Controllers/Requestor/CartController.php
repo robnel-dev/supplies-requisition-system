@@ -38,7 +38,7 @@ class CartController extends Controller
             (int) $request->quantity
         );
 
-        return back()->with('success', 'Item quantity updated.');
+        return back();
     }
 
     public function destroy(Request $request, $itemId)
@@ -55,7 +55,8 @@ class CartController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->errors());
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => $e->getMessage()]);
+            // Surface the real error message — not a generic one.
+            return back()->withErrors(['checkout' => $e->getMessage()]);
         }
     }
 }

@@ -4,39 +4,67 @@ namespace App\Http\Controllers\Requestor;
 
 use App\Http\Controllers\Controller;
 use App\Models\SupplyRequest;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class RequestController extends Controller
 {
+    public function __construct(private CartService $cartService) {}
+
     /**
-     * Active Requests index — shows all non-draft requests for the current user.
+     * Active Requests — only pending_approval, approved, released.
      */
     public function index(Request $request)
     {
         $user = $request->user();
 
         $requests = SupplyRequest::where('user_id', $user->id)
-            ->whereNotIn('status', ['draft']) // draft is the cart, not an active request
+            ->whereIn('status', [
+                SupplyRequest::STATUS_PENDING_APPROVAL,
+                SupplyRequest::STATUS_APPROVED,
+                SupplyRequest::STATUS_RELEASED,
+            ])
             ->with(['department'])
             ->latest('request_date')
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('Requestor/Requests/Index', [
+        return Inertia::render('Requestor/ActiveRequests/Index', [
             'requests' => $requests,
         ]);
     }
 
     /**
-     * Show a single request with all its details, items, and timeline.
-     * Scoped to the current user so they cannot view other users' requests.
+     * Archived Requests — rejected, cancelled, archived statuses.
+     */
+    public function archived(Request $request)
+    {
+        $user = $request->user();
+
+        $requests = SupplyRequest::where('user_id', $user->id)
+            ->whereIn('status', [
+                SupplyRequest::STATUS_REJECTED,
+                SupplyRequest::STATUS_CANCELLED,
+                SupplyRequest::STATUS_ARCHIVED,
+            ])
+            ->with(['department'])
+            ->latest('request_date')
+            ->paginate(10)
+            ->withQueryString();
+
+        return Inertia::render('Requestor/ArchivedRequests/Index', [
+            'requests' => $requests,
+        ]);
+    }
+
+    /**
+     * Show a single active request.
      */
     public function show(Request $request, SupplyRequest $supplyRequest)
     {
         $user = $request->user();
 
-        // Security: Only allow the owner to view their request
         abort_if($supplyRequest->user_id !== $user->id, 403);
 
         $supplyRequest->load([
@@ -46,13 +74,37 @@ class RequestController extends Controller
             'timelines.performer',
         ]);
 
-        // Find the approver assigned to the user's department
-        // The approver is the user with role 'approver' in the same department
         $departmentApprover = \App\Models\User::where('department_id', $user->department_id)
             ->where('role', 'approver')
             ->first();
 
-        return Inertia::render('Requestor/Requests/Show', [
+        return Inertia::render('Requestor/ActiveRequests/Show', [
+            'supplyRequest'      => $supplyRequest,
+            'departmentApprover' => $departmentApprover,
+        ]);
+    }
+
+    /**
+     * Show a single archived request.
+     */
+    public function showArchived(Request $request, SupplyRequest $supplyRequest)
+    {
+        $user = $request->user();
+
+        abort_if($supplyRequest->user_id !== $user->id, 403);
+
+        $supplyRequest->load([
+            'department',
+            'approver',
+            'items',
+            'timelines.performer',
+        ]);
+
+        $departmentApprover = \App\Models\User::where('department_id', $user->department_id)
+            ->where('role', 'approver')
+            ->first();
+
+        return Inertia::render('Requestor/ArchivedRequests/Show', [
             'supplyRequest'      => $supplyRequest,
             'departmentApprover' => $departmentApprover,
         ]);
@@ -81,5 +133,26 @@ class RequestController extends Controller
 
         return redirect()->route('requestor.requests.index')
             ->with('success', 'Request cancelled successfully.');
+    }
+
+    public function reopen(Request $request, SupplyRequest $supplyRequest)
+    {
+        $user = $request->user();
+
+        abort_if($supplyRequest->user_id !== $user->id, 403);
+
+        if ($supplyRequest->status !== SupplyRequest::STATUS_PENDING_APPROVAL) {
+            return back()->withErrors(['reopen' => 'Only requests pending approval can be edited.']);
+        }
+
+        try {
+            $this->cartService->reopenForEdit($user, $supplyRequest);
+        } catch (\Exception $e) {
+            // Return the real error message to the Vue page
+            return back()->withErrors(['reopen' => $e->getMessage()]);
+        }
+
+        return redirect()->route('requestor.catalog.index')
+            ->with('success', 'Request reopened for editing. Make your changes and re-submit when ready.');
     }
 }

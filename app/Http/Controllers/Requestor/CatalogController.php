@@ -12,7 +12,6 @@ class CatalogController extends Controller
 {
     public function index(Request $request, CartService $cartService)
     {
-        // Only show ACTIVE supplies in the catalog
         $query = Supply::with('reference')->where('is_active', true);
 
         if ($request->filled('search')) {
@@ -38,13 +37,14 @@ class CatalogController extends Controller
             ->filter()
             ->values();
 
-        $draft = $cartService->getOrCreateDraft($request->user());
+        // Get the existing draft (null if none)
+        $draft = $cartService->getActiveDraft($request->user());
 
         return Inertia::render('Requestor/Catalog/Index', [
             'supplies'   => $supplies,
             'filters'    => $request->only(['search', 'category']),
             'categories' => $categories,
-            'cart'       => $draft->load('items'), // Ensure items are always loaded
+            'cart'       => $draft?->load('items'),   // null if no draft
         ]);
     }
 }
