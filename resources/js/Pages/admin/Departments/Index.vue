@@ -1,7 +1,17 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { Plus, X, Check, Building2, Users, Edit, Trash2, ChevronDown, AlertTriangle } from 'lucide-vue-next';
+import {
+    AlertTriangle,
+    Building2,
+    Check,
+    Edit,
+    Plus,
+    RotateCcw,
+    Trash2,
+    Users,
+    X,
+} from 'lucide-vue-next';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -10,168 +20,127 @@ import InputError from '@/Components/InputError.vue';
 import PageHeader from '@/Components/PageHeader.vue';
 import { useToast } from '@/Composables/useToast';
 
+const props = defineProps({
+    departments: {
+        type: Array,
+        default: () => [],
+    },
+    hoRefs: {
+        type: Array,
+        default: () => [],
+    },
+    storeAreaOptions: {
+        type: Array,
+        default: () => [],
+    },
+});
 
 const { showToast } = useToast();
-
-const props = defineProps({
-    departments: Array,
-});
 
 const totalDepartments = computed(() => props.departments.length);
 const totalAssignedUsers = computed(() => {
     return props.departments.reduce((total, dept) => total + (dept.users_count || 0), 0);
 });
 
-// --- State Management ---
 const isModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isEditMode = ref(false);
 const editingId = ref(null);
 const departmentToDelete = ref(null);
+const selectedReference = ref(null);
 
-// --- Toast State Management ---
-const toast = ref({
-    show: false,
-    message: '',
-    type: 'success'
-});
-
-// Define initial form state for clean resets
 const initialFormState = {
-    name: '',
+    external_department_reference_id: '',
     code: '',
+    name: '',
     type: 'head_office',
+    area: 'HO',
+    cost_center: '',
+    cost_center_source: 'manual',
 };
 
 const form = useForm({ ...initialFormState });
 
-// --- Predefined Departments Data ---
-const predefinedDepartments = [
-    { code: 'HHR', name: 'Human Resources' }, { code: 'HIT', name: 'Information Technology' },
-    { code: 'HAC', name: 'Accounting' }, { code: 'HEO', name: 'Executive Office' },
-    { code: 'HAU', name: 'Audit' }, { code: 'HTR', name: 'Treasury' },
-    { code: 'HWA', name: 'Warehouse' }, { code: 'HAS', name: 'Sales Operations' },
-    { code: 'HVM', name: 'Visual Merchandising' }, { code: 'HMS', name: 'Marketing' },
-    { code: 'HPS', name: 'Purchasing' }, { code: 'HLP', name: 'Loss Prevention' },
-    { code: 'HPB', name: 'Planning & Budgeting' }, { code: 'HLD', name: 'Learning & Development' },
-    { code: 'Area 1', name: 'South Luzon' }, { code: 'Area 2', name: 'North Luzon' },
-    { code: 'Area 3', name: 'NCR 1' }, { code: 'Area 4', name: 'NCR 2' },
-    { code: 'Area 5', name: 'Visayas' }, { code: 'Area 6', name: 'Mindanao' }
-];
+const hasExternalReference = computed(() => Boolean(form.external_department_reference_id));
+const costCenterLocked = computed(() => hasExternalReference.value && form.cost_center_source === 'external');
 
-// --- Dropdown Logic ---
-const showCodeDropdown = ref(false);
-const showNameDropdown = ref(false);
-const codeDropdownRef = ref(null);
-const nameDropdownRef = ref(null);
-const highlightedCodeIndex = ref(-1);
-const highlightedNameIndex = ref(-1);
+const formatType = (type) => type === 'head_office' ? 'HEAD OFFICE' : 'STORE AREA';
 
-const handleClickOutside = (event) => {
-    if (codeDropdownRef.value && !codeDropdownRef.value.contains(event.target)) {
-        showCodeDropdown.value = false;
-        highlightedCodeIndex.value = -1;
-    }
-    if (nameDropdownRef.value && !nameDropdownRef.value.contains(event.target)) {
-        showNameDropdown.value = false;
-        highlightedNameIndex.value = -1;
-    }
+const referenceLabel = (reference) => {
+    const company = reference.company_code ? ` (${reference.company_code})` : '';
+
+    return `${reference.department_code} - ${reference.name}${company}`;
 };
 
-onMounted(() => document.addEventListener('mousedown', handleClickOutside));
-onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside));
-
-const filteredCodes = computed(() => {
-    if (!form.code) return predefinedDepartments;
-    return predefinedDepartments.filter(d => d.code.toLowerCase().includes(form.code.toLowerCase()));
-});
-
-const filteredNames = computed(() => {
-    if (!form.name) return predefinedDepartments;
-    return predefinedDepartments.filter(d => d.name.toLowerCase().includes(form.name.toLowerCase()));
-});
-
-const selectPredefinedCode = (dept) => {
-    form.code = dept.code;
-    form.name = dept.name;
-    showCodeDropdown.value = false;
-    highlightedCodeIndex.value = -1;
+const resetDepartmentFields = (type = form.type) => {
+    form.external_department_reference_id = '';
+    form.code = '';
+    form.name = '';
+    form.type = type;
+    form.area = type === 'head_office' ? 'HO' : '';
+    form.cost_center = '';
+    form.cost_center_source = 'manual';
+    selectedReference.value = null;
 };
 
-const selectPredefinedName = (dept) => {
-    form.name = dept.name;
-    form.code = dept.code;
-    showNameDropdown.value = false;
-    highlightedNameIndex.value = -1;
+const handleTypeChange = () => {
+    resetDepartmentFields(form.type);
 };
 
-const handleCodeInput = () => {
-    showCodeDropdown.value = true;
-    highlightedCodeIndex.value = -1;
-    const match = predefinedDepartments.find(d => d.code.toLowerCase() === form.code.toLowerCase());
-    if (match) form.name = match.name;
-};
-
-const handleNameInput = () => {
-    showNameDropdown.value = true;
-    highlightedNameIndex.value = -1;
-    const match = predefinedDepartments.find(d => d.name.toLowerCase() === form.name.toLowerCase());
-    if (match) form.code = match.code;
-};
-
-const handleCodeKeydown = (e) => {
-    if (!showCodeDropdown.value && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
-        showCodeDropdown.value = true;
+const applyHeadOfficeReference = (reference) => {
+    if (!reference) {
         return;
     }
-    if (!showCodeDropdown.value) return;
 
-    if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        highlightedCodeIndex.value = (highlightedCodeIndex.value + 1) % filteredCodes.value.length;
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        highlightedCodeIndex.value = highlightedCodeIndex.value <= 0 ? filteredCodes.value.length - 1 : highlightedCodeIndex.value - 1;
-    } else if (e.key === 'Enter' && highlightedCodeIndex.value > -1) {
-        e.preventDefault();
-        selectPredefinedCode(filteredCodes.value[highlightedCodeIndex.value]);
-    } else if (e.key === 'Escape') {
-        showCodeDropdown.value = false;
-    }
+    selectedReference.value = reference;
+    form.external_department_reference_id = reference.id;
+    form.code = reference.department_code;
+    form.name = reference.name;
+    form.area = reference.area || 'HO';
+    form.cost_center = reference.cost_center;
+    form.cost_center_source = 'external';
 };
 
-const handleNameKeydown = (e) => {
-    if (!showNameDropdown.value && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
-        showNameDropdown.value = true;
+const selectHeadOfficeReference = () => {
+    if (!form.external_department_reference_id) {
+        selectedReference.value = null;
+        form.cost_center_source = 'manual';
         return;
     }
-    if (!showNameDropdown.value) return;
 
-    if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        highlightedNameIndex.value = (highlightedNameIndex.value + 1) % filteredNames.value.length;
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        highlightedNameIndex.value = highlightedNameIndex.value <= 0 ? filteredNames.value.length - 1 : highlightedNameIndex.value - 1;
-    } else if (e.key === 'Enter' && highlightedNameIndex.value > -1) {
-        e.preventDefault();
-        selectPredefinedName(filteredNames.value[highlightedNameIndex.value]);
-    } else if (e.key === 'Escape') {
-        showNameDropdown.value = false;
-    }
+    const reference = props.hoRefs.find((item) => Number(item.id) === Number(form.external_department_reference_id));
+
+    applyHeadOfficeReference(reference);
 };
 
-// --- CRUD Actions ---
+const selectStoreArea = () => {
+    const area = props.storeAreaOptions.find((item) => item.area === form.area);
+
+    form.external_department_reference_id = '';
+    selectedReference.value = null;
+    form.code = area?.code || '';
+    form.name = area?.name || '';
+    form.cost_center = '';
+    form.cost_center_source = 'manual';
+};
+
+const useManualEntry = () => {
+    form.external_department_reference_id = '';
+    form.cost_center_source = 'manual';
+    selectedReference.value = null;
+};
+
+const overrideCostCenter = () => {
+    form.cost_center_source = 'manual';
+};
 
 const openModal = () => {
     isEditMode.value = false;
     editingId.value = null;
-
-    // Explicitly set defaults back to empty before resetting
     form.defaults(initialFormState);
     form.reset();
     form.clearErrors();
-
+    selectedReference.value = null;
     isModalOpen.value = true;
 };
 
@@ -179,53 +148,49 @@ const openEditModal = (dept) => {
     isEditMode.value = true;
     editingId.value = dept.id;
 
-    // Explicitly set defaults to the selected record so cancel/reset works properly
     form.defaults({
-        name: dept.name,
-        code: dept.code,
-        type: dept.type,
+        external_department_reference_id: dept.external_department_reference_id || '',
+        code: dept.code || '',
+        name: dept.name || '',
+        type: dept.type || 'head_office',
+        area: dept.area || (dept.type === 'store' ? '' : 'HO'),
+        cost_center: dept.cost_center || '',
+        cost_center_source: dept.cost_center_source || 'manual',
     });
     form.reset();
     form.clearErrors();
 
+    selectedReference.value = dept.external_reference || null;
     isModalOpen.value = true;
 };
 
 const closeModal = () => {
     isModalOpen.value = false;
-    showCodeDropdown.value = false;
-    showNameDropdown.value = false;
-    highlightedCodeIndex.value = -1;
-    highlightedNameIndex.value = -1;
 
-    // Wait for exit animation to finish before clearing
     setTimeout(() => {
         form.reset();
         form.clearErrors();
+        selectedReference.value = null;
     }, 200);
 };
 
 const submit = () => {
+    const options = {
+        onSuccess: () => {
+            closeModal();
+            showToast(isEditMode.value ? 'Department successfully updated!' : 'Department successfully created!');
+        },
+        preserveScroll: true,
+    };
+
     if (isEditMode.value) {
-        form.put(route('admin.departments.update', editingId.value), {
-            onSuccess: () => {
-                closeModal();
-                showToast('Department successfully updated!');
-            },
-            preserveScroll: true,
-        });
-    } else {
-        form.post(route('admin.departments.store'), {
-            onSuccess: () => {
-                closeModal();
-                showToast('Department successfully created!');
-            },
-            preserveScroll: true,
-        });
+        form.put(route('admin.departments.update', editingId.value), options);
+        return;
     }
+
+    form.post(route('admin.departments.store'), options);
 };
 
-// --- Delete Actions ---
 const confirmDelete = (dept) => {
     departmentToDelete.value = dept;
     isDeleteModalOpen.value = true;
@@ -233,6 +198,7 @@ const confirmDelete = (dept) => {
 
 const closeDeleteModal = () => {
     isDeleteModalOpen.value = false;
+
     setTimeout(() => {
         departmentToDelete.value = null;
         form.clearErrors();
@@ -246,11 +212,8 @@ const deleteDepartment = () => {
             showToast('Department deleted successfully!');
         },
         onError: (errors) => {
-            // Trigger error toast if backend policy prevents deletion
-            if (errors.delete) {
-                closeDeleteModal();
-                showToast(errors.delete, 'error');
-            }
+            closeDeleteModal();
+            showToast(errors.delete || 'Unable to delete this department.', 'error');
         },
         preserveScroll: true,
     });
@@ -258,7 +221,6 @@ const deleteDepartment = () => {
 </script>
 
 <template>
-
     <Head title="Departments" />
 
     <AppLayout>
@@ -267,9 +229,8 @@ const deleteDepartment = () => {
 
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                    <div
-                        class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
-                        <div class="p-3 rounded-full	bg-brand-blue-dark/10 	text-brand-blue-dark mr-4">
+                    <div class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                        <div class="p-3 rounded-full bg-brand-blue-dark/10 text-brand-blue-dark mr-4">
                             <Building2 class="w-6 h-6" />
                         </div>
                         <div>
@@ -277,9 +238,8 @@ const deleteDepartment = () => {
                             <p class="text-2xl font-black text-gray-800">{{ totalDepartments }}</p>
                         </div>
                     </div>
-                    <div
-                        class="bg-white border-l-4 border-[#1d62c7] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
-                        <div class="p-3 rounded-full bg-brand-blue-darker/10 	text-brand-blue-darker mr-4">
+                    <div class="bg-white border-l-4 border-[#1d62c7] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                        <div class="p-3 rounded-full bg-brand-blue-darker/10 text-brand-blue-darker mr-4">
                             <Users class="w-6 h-6" />
                         </div>
                         <div>
@@ -288,8 +248,8 @@ const deleteDepartment = () => {
                         </div>
                     </div>
                 </div>
-                <div
-                    class="bg-white rounded-lg shadow-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
+
+                <div class="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4 border border-gray-200">
                     <button @click="openModal" class="btn-primary">
                         <Plus class="w-5 h-5 mr-2" /> Create Department
                     </button>
@@ -301,44 +261,45 @@ const deleteDepartment = () => {
                     <table class="w-full text-left text-sm whitespace-nowrap">
                         <thead class="table-header">
                             <tr>
-                                <th class="px-6 py-4">Department Code</th>
-                                <th class="px-6 py-4">Department Name</th>
-                                <th class="px-6 py-4">Location Type</th>
-                                <th class="px-6 py-4 text-center">Assigned Users</th>
+                                <th class="px-6 py-4">Code</th>
+                                <th class="px-6 py-4">Department / Area</th>
+                                <th class="px-6 py-4">Type</th>
+                                <th class="px-6 py-4">Cost Center Rule</th>
+                                <th class="px-6 py-4 text-center">Users</th>
                                 <th class="px-6 py-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="dept in departments" :key="dept.id"
-                                class="hover:bg-blue-50/50 transition-colors">
+                            <tr v-for="dept in departments" :key="dept.id" class="hover:bg-blue-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-gray-900">{{ dept.code }}</td>
                                 <td class="px-6 py-4 font-medium text-gray-700">{{ dept.name }}</td>
                                 <td class="px-6 py-4">
-                                    <span
-                                        :class="['px-2.5 py-1 rounded-full text-xs font-semibold', dept.type === 'head_office' ? 'bg-purple-50 text-purple-700' : 'bg-brand-yellow/20 text-yellow-800']">
-                                        {{ dept.type.replace('_', ' ').toUpperCase() }}
+                                    <span :class="[
+                                        'px-2.5 py-1 rounded-full text-xs font-semibold',
+                                        dept.type === 'head_office' ? 'bg-purple-50 text-purple-700' : 'bg-brand-yellow/20 text-yellow-800'
+                                    ]">
+                                        {{ formatType(dept.type) }}
                                     </span>
                                 </td>
+                                <td class="px-6 py-4 font-semibold text-gray-800">
+                                    {{ dept.type === 'store' ? 'Selected per user/store' : (dept.cost_center || 'Manual') }}
+                                </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-blue-dark/10 text-brand-blue-dark font-bold text-xs">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-blue-dark/10 text-brand-blue-dark font-bold text-xs">
                                         {{ dept.users_count || 0 }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <button @click="openEditModal(dept)"
-                                        class="	text-brand-blue-dark hover:text-[#0b426e] transition-colors mr-3"
-                                        title="Edit">
+                                    <button @click="openEditModal(dept)" class="text-brand-blue-dark hover:text-[#0b426e] transition-colors mr-3" title="Edit">
                                         <Edit class="w-4 h-4" />
                                     </button>
-                                    <button @click="confirmDelete(dept)"
-                                        class="text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                                    <button @click="confirmDelete(dept)" class="text-red-500 hover:text-red-700 transition-colors" title="Delete">
                                         <Trash2 class="w-4 h-4" />
                                     </button>
                                 </td>
                             </tr>
                             <tr v-if="departments.length === 0">
-                                <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                                <td colspan="6" class="px-6 py-12 text-center text-gray-400">
                                     No departments found. Click "Create Department" to get started.
                                 </td>
                             </tr>
@@ -360,75 +321,92 @@ const deleteDepartment = () => {
             </div>
 
             <form @submit.prevent="submit" class="flex flex-col bg-white">
-
-                <div class="p-6 bg-gray-50/50 overflow-y-auto max-h-[60vh] flex flex-col gap-5">
-
-                    <div class="relative" ref="codeDropdownRef">
-                        <InputLabel for="code" value="Department Code / Area Number" />
-                        <div class="relative">
-                            <TextInput id="code" v-model="form.code" @input="handleCodeInput"
-                                @focus="showCodeDropdown = true" @click="showCodeDropdown = true"
-                                @keydown="handleCodeKeydown" type="text"
-                                class="mt-1 block w-full pr-10 border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm"
-                                placeholder="Search or type custom code" autocomplete="off" />
-                            <div
-                                class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                <ChevronDown class="w-4 h-4" />
-                            </div>
-                        </div>
-
-                        <div v-if="showCodeDropdown && filteredCodes.length > 0"
-                            class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto custom-scrollbar">
-                            <ul class="py-1">
-                                <li v-for="(dept, index) in filteredCodes" :key="'dropdown-code-' + dept.code"
-                                    @click="selectPredefinedCode(dept)" @mouseenter="highlightedCodeIndex = index"
-                                    :class="['px-4 py-2 cursor-pointer text-sm flex justify-between items-center group transition-colors', highlightedCodeIndex === index ? 'bg-blue-100' : 'hover:bg-blue-50']">
-                                    <span class="font-bold text-brand-blue-dark">{{ dept.code }}</span>
-                                    <span class="text-gray-500 group-hover:text-gray-700">{{ dept.name }}</span>
-                                </li>
-                            </ul>
-                        </div>
-                        <InputError :message="form.errors.code" class="mt-2" />
-                    </div>
-
-                    <div class="relative" ref="nameDropdownRef">
-                        <InputLabel for="name" value="Department / Area Name" />
-                        <div class="relative">
-                            <TextInput id="name" v-model="form.name" @input="handleNameInput"
-                                @focus="showNameDropdown = true" @click="showNameDropdown = true"
-                                @keydown="handleNameKeydown" type="text"
-                                class="mt-1 block w-full pr-10 border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm"
-                                placeholder="Search or type custom name" autocomplete="off" />
-                            <div
-                                class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                <ChevronDown class="w-4 h-4" />
-                            </div>
-                        </div>
-
-                        <div v-if="showNameDropdown && filteredNames.length > 0"
-                            class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto custom-scrollbar">
-                            <ul class="py-1">
-                                <li v-for="(dept, index) in filteredNames" :key="'dropdown-name-' + dept.code"
-                                    @click="selectPredefinedName(dept)" @mouseenter="highlightedNameIndex = index"
-                                    :class="['px-4 py-2 cursor-pointer text-sm flex justify-between items-center group transition-colors', highlightedNameIndex === index ? 'bg-blue-100' : 'hover:bg-blue-50']">
-                                    <span class="font-bold text-gray-800">{{ dept.name }}</span>
-                                    <span class="text-brand-blue-dark/70 text-xs font-semibold">{{ dept.code }}</span>
-                                </li>
-                            </ul>
-                        </div>
-                        <InputError :message="form.errors.name" class="mt-2" />
-                    </div>
-
+                <div class="p-6 bg-gray-50/50 overflow-y-auto max-h-[70vh] flex flex-col gap-5">
                     <div>
-                        <InputLabel for="type" value="Location Type" />
-                        <select id="type" v-model="form.type"
+                        <InputLabel for="type" value="Department Type" />
+                        <select id="type" v-model="form.type" @change="handleTypeChange"
                             class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
-                            <option value="head_office">Head Office</option>
+                            <option value="head_office">Head Office Function</option>
                             <option value="store">Store Area</option>
                         </select>
                         <InputError :message="form.errors.type" class="mt-2" />
                     </div>
 
+                    <div v-if="form.type === 'head_office'">
+                        <InputLabel for="ho_ref" value="Head Office Reference" />
+                        <select id="ho_ref" v-model="form.external_department_reference_id" @change="selectHeadOfficeReference"
+                            class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
+                            <option value="">Manual Entry</option>
+                            <option v-for="reference in hoRefs" :key="reference.id" :value="reference.id">
+                                {{ referenceLabel(reference) }}
+                            </option>
+                        </select>
+                        <InputError :message="form.errors.external_department_reference_id" class="mt-2" />
+                    </div>
+
+                    <div v-if="form.type === 'store'">
+                        <InputLabel for="area" value="Store Area" />
+                        <select id="area" v-model="form.area" @change="selectStoreArea"
+                            class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
+                            <option value="">Select Area</option>
+                            <option v-for="area in storeAreaOptions" :key="area.area" :value="area.area">
+                                {{ area.code }} - {{ area.name }}
+                            </option>
+                        </select>
+                        <InputError :message="form.errors.area" class="mt-2" />
+                    </div>
+
+                    <div v-if="hasExternalReference" class="flex items-center justify-between rounded-md border border-green-100 bg-green-50 px-3 py-2">
+                        <span class="text-sm font-semibold text-green-800">
+                            {{ selectedReference ? referenceLabel(selectedReference) : 'External reference selected' }}
+                        </span>
+                        <button type="button" @click="useManualEntry" class="inline-flex items-center text-sm font-bold text-green-800 hover:text-green-900">
+                            <RotateCcw class="w-4 h-4 mr-1.5" /> Manual Entry
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <InputLabel for="code" value="Department Code / Area Number" />
+                            <TextInput id="code" v-model="form.code" type="text"
+                                :readonly="hasExternalReference || form.type === 'store'"
+                                :class="['mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm', (hasExternalReference || form.type === 'store') ? 'bg-gray-100' : '']"
+                                placeholder="e.g. HHR or Area 1" />
+                            <InputError :message="form.errors.code" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="name" value="Department / Area Name" />
+                            <TextInput id="name" v-model="form.name" type="text"
+                                :readonly="hasExternalReference || form.type === 'store'"
+                                :class="['mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm', (hasExternalReference || form.type === 'store') ? 'bg-gray-100' : '']"
+                                placeholder="e.g. HRD or South Luzon" />
+                            <InputError :message="form.errors.name" class="mt-2" />
+                        </div>
+                    </div>
+
+                    <div v-if="form.type === 'head_office'">
+                        <InputLabel for="cost_center" value="Cost Center" />
+                        <div class="relative mt-1">
+                            <TextInput id="cost_center" v-model="form.cost_center" type="text"
+                                :readonly="costCenterLocked"
+                                :class="['block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm pr-28', costCenterLocked ? 'bg-gray-100' : '']"
+                                placeholder="e.g. 80040" />
+                            <span v-if="form.cost_center_source === 'external'"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                External
+                            </span>
+                        </div>
+                        <InputError :message="form.errors.cost_center" class="mt-2" />
+                        <button v-if="costCenterLocked" type="button" @click="overrideCostCenter"
+                            class="mt-2 text-sm font-bold text-[#1369a8] hover:text-[#0b426e]">
+                            Override Cost Center
+                        </button>
+                    </div>
+
+                    <div v-else class="rounded-md border border-yellow-100 bg-yellow-50 px-3 py-2 text-sm font-semibold text-yellow-900">
+                        Store area departments do not hold one cost center. The store and cost center are selected when creating or editing a user.
+                    </div>
                 </div>
 
                 <div class="px-6 py-4 bg-gray-100 flex justify-end space-x-3 border-t border-gray-200">
@@ -441,7 +419,6 @@ const deleteDepartment = () => {
                         <Check class="w-4 h-4 mr-2" /> {{ isEditMode ? 'Save Changes' : 'Create Record' }}
                     </button>
                 </div>
-
             </form>
         </Modal>
 
@@ -453,8 +430,7 @@ const deleteDepartment = () => {
                 <div class="mt-4 text-center">
                     <h3 class="text-lg font-black text-gray-900">Confirm Deletion</h3>
                     <p class="mt-2 text-sm text-gray-500">
-                        Are you sure you want to delete <span class="font-bold text-gray-800">{{
-                            departmentToDelete?.name }}</span>?<br>
+                        Are you sure you want to delete <span class="font-bold text-gray-800">{{ departmentToDelete?.name }}</span>?<br>
                         This action cannot be undone.
                     </p>
                 </div>
@@ -470,26 +446,5 @@ const deleteDepartment = () => {
                 </div>
             </div>
         </Modal>
-
     </AppLayout>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-</style>

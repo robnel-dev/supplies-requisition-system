@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreDepartmentRequest;
-use App\Http\Requests\Admin\UpdateDepartmentRequest;
 use App\Models\Department;
 use App\Services\DepartmentService;
 use Illuminate\Support\Facades\Gate;
@@ -12,17 +11,31 @@ use Inertia\Inertia;
 
 class DepartmentController extends Controller
 {
-    public function __construct(protected DepartmentService $departmentService) {}
+    public function __construct(protected DepartmentService $service) {}
 
     public function index()
     {
-        // Authorize an action
         Gate::authorize('viewAny', Department::class);
 
-        $departments = Department::withCount('users')->orderBy('name')->get();
+        $departments = Department::with('externalReference')
+            ->withCount('users')
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('Admin/Departments/Index', [
-            'departments' => $departments
+            'departments' => $departments,
+            'hoRefs' => $this->service->getHeadOfficeRefs(),
+            'storeAreas' => $this->service->getStoreAreas(),
+            'storeAreaOptions' => $this->service->getStoreAreaOptions(),
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('Admin/Departments/Create', [
+            'hoRefs' => $this->service->getHeadOfficeRefs(),
+            'storeAreas' => $this->service->getStoreAreas(),
+            'storeAreaOptions' => $this->service->getStoreAreaOptions(),
         ]);
     }
 
@@ -30,17 +43,27 @@ class DepartmentController extends Controller
     {
         Gate::authorize('create', Department::class);
 
-        $this->departmentService->createDepartment($request->validated());
+        $this->service->create($request->validated());
 
         return redirect()->route('admin.departments.index')
             ->with('success', 'Department created successfully.');
     }
 
-    public function update(UpdateDepartmentRequest $request, Department $department)
+    public function edit(Department $department)
+    {
+        return Inertia::render('Admin/Departments/Edit', [
+            'department' => $department->load('externalReference'),
+            'hoRefs' => $this->service->getHeadOfficeRefs(),
+            'storeAreas' => $this->service->getStoreAreas(),
+            'storeAreaOptions' => $this->service->getStoreAreaOptions(),
+        ]);
+    }
+
+    public function update(StoreDepartmentRequest $request, Department $department)
     {
         Gate::authorize('update', $department);
 
-        $this->departmentService->updateDepartment($department, $request->validated());
+        $this->service->update($department, $request->validated());
 
         return redirect()->route('admin.departments.index')
             ->with('success', 'Department updated successfully.');
@@ -50,12 +73,14 @@ class DepartmentController extends Controller
     {
         Gate::authorize('delete', $department);
 
-        try {
-            $this->departmentService->deleteDepartment($department);
-            return redirect()->route('admin.departments.index')
-                ->with('success', 'Department deleted successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['delete' => $e->getMessage()]);
-        }
+        $this->service->delete($department);
+
+        return redirect()->route('admin.departments.index')
+            ->with('success', 'Department deleted successfully.');
+    }
+
+    public function storeRefsByArea(string $area)
+    {
+        return response()->json($this->service->getStoreRefsByArea($area));
     }
 }

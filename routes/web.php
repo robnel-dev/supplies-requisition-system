@@ -24,6 +24,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('departments', DepartmentController::class)
                 ->except(['create', 'show', 'edit']);
 
+            // AJAX endpoint for area → store refs lookup
+            Route::get('departments/store-refs/{area}', [DepartmentController::class, 'storeRefsByArea'])
+                ->name('departments.store-refs');
+
             Route::put('users/{user}/password', [UserController::class, 'updatePassword'])
                 ->name('users.password');
             Route::resource('users', UserController::class)

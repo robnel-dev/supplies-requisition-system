@@ -16,6 +16,10 @@ return new class extends Migration
             $table->string('password');
             $table->enum('role', ['requestor', 'approver', 'hr_admin'])->default('requestor');
             $table->foreignId('department_id')->constrained()->restrictOnDelete();
+            $table->foreignId('external_department_reference_id')
+                ->nullable()
+                ->constrained('external_department_references')
+                ->nullOnDelete();
             $table->string('cost_center');
             $table->boolean('is_active')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

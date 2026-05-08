@@ -18,6 +18,7 @@ class User extends Authenticatable
         'password',
         'role',
         'department_id',
+        'external_department_reference_id',
         'cost_center',
         'is_active',
         'created_by',
@@ -40,6 +41,11 @@ class User extends Authenticatable
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function externalDepartmentReference(): BelongsTo
+    {
+        return $this->belongsTo(ExternalDepartmentReference::class);
     }
 
     // Track who created this user

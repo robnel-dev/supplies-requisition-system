@@ -1,0 +1,167 @@
+id,company_code,department_code,name,cost_center,branch,area,remarks,active,created_at,updated_at
+1,DII,HPC,DII - Production Control,60010,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+2,DII,HPI,DII - Product Integrity,60020,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+3,DII,HPP,DII - PPIC,60030,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+4,DII,HQC,DII - Warehouse - Quality Control,60040,Head Office,HO,Edited due to transfer of QC Production to Warehouse,1,12/21/2023 2:25,03/25/2025 2:11
+5,DII,HQA,DII - Quality Assurance Fixing,60050,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+6,DII,HPG,DII - Production - PGMS,60060,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+7,DII,HCU,DII - Production Cutting,60070,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+8,DII,HEM,DII - Production - Embroidery,60080,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+9,DII,HPR,DII - Printing,60090,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+10,DII,HFN,DII - Production - Finishing,60100,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+11,DII,HSE,DII - Services,60110,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+12,CCI,HEO,Executive Office,80010,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+13,DII,GYM,DII Gym,80020,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+14,DII,HLO,Legal Office,80030,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+15,CCI,HHR,HRD,80040,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+16,CCI,HAU,Audit,80050,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+17,CCI,HIT,IT,80070,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+18,CCI,HAC,Accounting,80080,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+19,CCI,HTR,Treasury,80090,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+20,DII,HPU,Purchasing-Local,80100,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+21,DII,HIM,Import,80110,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+22,CCI,HWA,Warehouse,80170,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+23,DII,HFA,Warehouse - Fabric,80130,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+24,DII,ACC,Warehouse - Accessories,80140,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+25,DII,HIP,In Process,80150,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+26,DII,HMN,Warehouse - Maintenance,80160,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+27,CCI,HTA,Warehouse - Traffic 80170,80170,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+28,DII,HEN,Engineering Department,80180,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+29,DII,HME,Merchandising Divsion,80190,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+30,DII,HPA,DII - PDD Adult,80200,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+31,DII,HPD,DII - PDD B/K,80210,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+32,DII,CRE,DII - Creative,80220,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+33,DII,HMA,DII - Merchandising,80230,Head Office,HO,Edited,1,12/21/2023 2:25,11/09/2024 8:27
+34,DII,HMB,DII - Merchandising,80240,Head Office,HO,Edited,1,12/21/2023 2:25,11/09/2024 8:28
+35,CCI,HAS,Sales Operation,80250,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+36,CCI,HST,Sales Training & Development,80260,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+37,CCI,HVM,Visual Merchandising,80270,Head Office,HO,N/A,1,12/21/2023 2:25,12/21/2023 2:25
+38,CCI,HMS,Marketing,80280,Head Office,HO,N/A,1,12/21/2023 2:25,10/03/2025 2:13
+45,CCI,427,Concession Landmark Mkti Adult 11001,11001,Store,Area4,galandmarkmakati@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+46,CCI,42H,Concession Terminal 3 Accs 11116,11116,Store,Area3,gaterminal3@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+48,CCI,451,LKK Cagayan De Oro Adult 10009,10009,Store,Area6,galkkcagayan@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+49,CCI,44J,NE Pacific Mall Cabtn A 10088,10088,Store,Area2,gacabanatuan@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+57,CCI,44M,Robinsons Tacloban 10091,10091,Store,Area5,garobtacloban@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+73,CCI,43I,SM Bacoor 10152,10152,Store,Area1,gasmbacoor@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+75,CCI,44Q,SM Seaside Cebu 10156,10156,Store,Area5,gasmseasidecebu@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+76,CCI,44I,SM Cabanatuan A 10158,10158,Store,Area2,gasmcabanatuan@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+79,CCI,43Q,Concession Landmark Tri Adult 11169,11169,Store,Area4,gatrinomalandmark@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+85,CCI,43X,Ayala Glorietta 10006,10006,Store,Area4,gaglorietta@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+86,CCI,44K,SM Mall Of Asia 10075,10075,Store,Area3,gasmmallofasia@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+89,CCI,452,SM Sta. Rosa 10157,10157,Store,Area1,gasmstarosa@guess.com.ph,1,12/21/2023 2:25,08/21/2025 4:13
+90,CCI,44L,Ayala Solenad 10164,10164,Store,Area1,gasolenad@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+92,CCI,44O,Ayala Legazpi 10166,10166,Store,Area1,gaayalalegazpi@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+93,CCI,44P,Sm CDO Premier 10181,10181,Store,Area6,gasmcdopremier@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+95,CCI,471,Outlet-Ayala Pavln Binan 12035,12035,Store,Area1,gaayalabinan@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+99,CCI,475,Outlet-Riverbanks 12039,12039,Store,Area4,gariverbanks@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+102,CCI,479,Outlet-Ayala Dasmarinas 12138,12138,Store,Area1,gaayaladasmarinas@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+103,CCI,47O,Outlet-Gaisano Tagum 12139,12139,Store,Area6,gagaisanotagum@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+106,CCI,47M,Outlet-Ayala Serin 12173,12173,Store,Area1,gaayalaserin@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+108,CCI,47L,Outlet-Lucky ChinaTown 12176,12176,Store,Area3,galuckychinatown@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+110,CCI,47P,Outlet - Robinsons Butuan 12178,12178,Store,Area6,garobbutuan@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+111,CCI,47N,Outlet-Robinsons Naga 12179,12179,Store,Area1,garobnaga@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+117,CCI,44C,CSI Dagupan 10016,10016,Store,Area2,gadagupan@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+119,CCI,44D,Island City Mall Bohol 10065,10065,Store,Area5,gabohol@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+120,CCI,44G,Concession Duty Free Paranaque 11022,11022,Store,Area3,gadutyfree@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+123,CCI,44E,Concession LCC Legaspi 11030,11030,Store,Area1,galcclegaspicons@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+128,CCI,44B,KCC Veranza Adult 10059,10059,Store,Area6,guess@dsldi.com,1,12/21/2023 2:25,12/21/2023 2:25
+137,CCI,44F,SM Lipa Adult 10080,10080,Store,Area1,gasmlipa@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+151,DII,HAD,Accounting,80080,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+152,DII,HCA,Production - New Sewing Line,60120,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+153,CCI,HPS,Purchasing,80100,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+155,CCI,SLP,Loss Prevention Department,80055,Store,Area1,,1,12/21/2023 2:25,12/21/2023 2:25
+156,CCI,HLP,Loss Prevention Department,80055,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+161,DII,HLG,Logistics,80120,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+162,CCI,449,Ayala Malls Capitol Central 10185,10185,Store,Area5,gaayalacapitol@guess.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+163,CCI,48L,E- Commerce POS HO,19180,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+164,CCI,HW3,Warehouse,80120,Head Office,HO,CCI Warehouse,1,12/21/2023 2:25,12/21/2023 2:25
+165,CCI,HPB,Planning & Budget,80060,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+168,CCI,48Y,Roving POS HO- CCI 19190,19190,Store,Area1,Roving POS,1,12/21/2023 2:25,01/17/2025 23:36
+169,DII,HT2,Treasury,80090,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+172,CCI,48K,Guess Shopee,10199,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+173,CCI,47K,Outlet-The Outlets at Lipa 12200,12200,Store,Area1,gaoutletsatlipa@guessstore.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+174,CCI,48R,Venice Piazza 19196,19196,Store,Area4,,1,12/21/2023 2:25,12/21/2023 2:25
+175,CCI,BDD,Business Development Department,80310,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+176,CCI,48Z,Eastwood 19174,19174,Store,Area4,,1,12/21/2023 2:25,12/21/2023 2:25
+177,CCI,48V,Ayala Uptown BGC 19187,19187,Store,Area2,,1,12/21/2023 2:25,12/21/2023 2:25
+178,CCI,453,Clark City Front 10206,10206,Store,Area2,,1,12/21/2023 2:25,12/21/2023 2:25
+180,CCI,455,SM City Tanza 10208,10208,Store,Area1,EDIT DEPARTMENT NAME,1,12/21/2023 2:25,09/16/2025 4:48
+181,CCI,458,SM Bataan 10210,10210,Store,Area2,,1,12/21/2023 2:25,12/21/2023 2:25
+182,CCI,45G,Greenhills Mall,10211,Store,Area4,,1,12/21/2023 2:25,12/21/2023 2:25
+183,CCI,45I,Landco Pacific Legaspi Adult 10051,10051,Store,Area1,,1,12/21/2023 2:25,12/21/2023 2:25
+184,CCI,SHR,HRD,80040,Store,Area1,,1,12/21/2023 2:25,12/21/2023 2:25
+185,CCI,45L,SM Cebu Adult 10010,10010,Store,Area5,area code,1,12/21/2023 2:25,08/21/2024 4:39
+186,CCI,44R,Okada Adult 10204,10204,Store,Area3,gaokada@guessstore.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+187,CCI,47Q,Outlet-Robinsons Bacolod 12205,12205,Store,Area5,garobbacolod@guessstore.com.ph,1,12/21/2023 2:25,12/21/2023 2:25
+188,CCI,454,SM Tuguegarao 10207,10207,Store,Area2,,1,12/21/2023 2:25,12/21/2023 2:25
+189,CCI,456,Ayala Malls Manila Bay 10209,10209,Store,Area3,EDIT DEPARTMENT NAME,1,12/21/2023 2:25,09/16/2025 4:46
+190,CCI,47W,Outlet- The Outlets Cebu 12212,12212,Store,Area5,gaoutletscebu@guessstore.com.ph,1,12/21/2023 2:25,02/21/2024 5:19
+191,CCI,45H,SM Sto. Tomas ,10213,Store,Area1,,1,12/21/2023 2:25,12/21/2023 2:25
+192,CCI,47X,Outlet - Robinsons Cebu 12041,12041,Store,Area5,garobcebu@guessstore.com.ph,1,12/21/2023 2:25,05/22/2024 23:08
+193,CCI,45P,Ayala Davao Abreeza 10113,10113,Store,Area6,gaayalaabreeza@guessstore.com.ph,1,12/21/2023 2:25,07/11/2024 23:30
+194,CCI,HE1,Warehouse - Employee Store,14032,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+195,CCI,48J,Case Study Atelier,19201,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+196,CCI,48I,Zalora Dropshipment,19202,Head Office,HO,,1,12/21/2023 2:25,12/21/2023 2:25
+197,CCI,44H,SM Grand Central 10203,10203,Store,Area3,updated,1,12/21/2023 2:25,09/16/2025 4:51
+198,CCI,45M,Ayala Cebu Adult 10008,10008,Store,Area5,gaayalacebu@guessstore.com.ph,1,12/21/2023 2:25,02/22/2024 1:59
+217,CCI,45R,SM Sorsogon,10214,Store,Area1,New Store,1,01/27/2024 1:52,01/30/2024 0:38
+218,CCI,45Q,SM Southmall 10146,10146,Store,Area3,gasmsouthmall@guessstore.com.ph,1,03/01/2024 8:09,03/07/2024 6:57
+219,CCI,45J,Robinsons Iloilo 10046,10046,Store,Area5,garobiloilo@guessstore.com.ph,1,03/02/2024 0:44,08/21/2024 4:38
+220,CCI,45K,SM Iloilo Adult 10036,10036,Store,Area5,new whse code,1,03/02/2024 4:32,04/04/2024 7:01
+221,CCI,45N,SM Bacolod Adult 10081,10081,Store,Area5,new whse code,1,03/02/2024 4:43,08/21/2024 4:38
+222,CCI,45O,KCC Zamboanga 10148,10148,Store,Area6,gakcczamboanga@guess.com.ph,1,04/13/2024 6:32,07/17/2024 4:16
+223,CCI,482,Roving POS HO- CCI 19174,19174,Store,Area1,Roving POS,1,06/29/2024 0:32,01/17/2025 23:37
+224,CCI,485,Roving POS HO- CCI 19193,19193,Store,Area3,Roving POS,1,06/29/2024 0:38,10/02/2025 2:54
+225,CCI,48T,Roving POS HO- CCI 19198,19198,Store,Area1,Roving POS,1,06/29/2024 2:31,01/17/2025 23:38
+226,CCI,483,Roving POS HO- CCI 19186,19186,Store,Area1,Roving POS,1,06/29/2024 2:33,01/17/2025 23:38
+227,CCI,484,Roving POS HO- CCI 19192,19192,Store,Area1,Roving POS,1,06/29/2024 2:45,01/17/2025 23:38
+228,CCI,48S,Roving POS HO- CCI 19197,19197,Store,Area1,Roving POS,1,06/29/2024 4:37,01/17/2025 23:38
+229,CCI,447,Ayala Feliz,10182,Store,Area4,Ayala Feliz,1,06/29/2024 5:23,06/29/2024 5:23
+230,CCI,45B,Ayala Town Center Adult,10011,Store,Area3,UPDATED,1,07/03/2024 1:54,09/18/2024 4:46
+231,CCI,4N0,Outlet-Market Market 12147,12147,Store,Area4,gamarketmarket@guess.com.ph,1,07/12/2024 2:09,07/30/2024 2:45
+232,CCI,45U,Robinsons Ilocos Norte 10160,10160,Store,Area2,new whse code,1,07/12/2024 2:22,07/12/2024 2:40
+233,CCI,47Y,Outlet-Robinsons Dumaguete 12177,12177,Store,Area5,new whse code,1,07/12/2024 4:20,08/21/2024 4:39
+234,CCI,481,Roving POS HO- CCI 19187,19187,Store,Area1,Roving POS,1,07/12/2024 6:41,01/17/2025 23:38
+235,CCI,48W,Roving POS HO-CCI 19188,19188,Store,Area1,NEW DEPARTMENT,1,08/30/2024 7:53,01/17/2025 23:37
+236,CCI,489,Roving POS HO-CCI 19196,19196,Store,Area1,Roving POS,1,09/18/2024 0:25,01/17/2025 23:37
+237,CCI,48B,Roving POS HO- CCI 19215,19215,Store,Area1,Roving POS,1,10/05/2024 5:34,01/17/2025 23:37
+238,CCI,47Z,Outlet- Robinsons Pampanga 12049,12049,Store,Area2,new whse code,1,11/21/2024 6:56,11/21/2024 6:56
+239,CCI,45S,SM Pampanga 10038,10038,Store,Area2,new warehouse code,1,11/21/2024 7:18,11/21/2024 7:18
+240,CCI,45T,SM Clark Adult 10076,10076,Store,Area2,new warehouse code,1,11/21/2024 7:36,11/21/2024 7:36
+241,CCI,462,KCC Cotabato 10219,10219,Store,Area6,New Store,1,12/05/2024 9:49,02/21/2025 8:10
+242,CCI,45W,Sta Lucia 10017,10017,Store,Area4,New Store,1,01/03/2025 5:12,02/13/2025 1:46
+243,CCI,45Y,Robinsons Pangasinan 10153,10153,Store,Area2,New Store code,1,01/03/2025 5:19,01/03/2025 5:19
+244,CCI,460,SM Rosales 10089,10089,Store,Area2,New Store code,1,01/03/2025 5:25,01/03/2025 5:26
+245,CCI,461,SM Baguio Adult 10056,10056,Store,Area2,new store code,1,01/03/2025 5:45,01/03/2025 5:45
+246,CCI,45X,SM Batangas Adult 10067,10067,Store,Area1,new code,1,01/03/2025 6:46,01/03/2025 6:46
+247,CCI,44S,SM Lanang Davao Adult 10128,10128,Store,Area6,edited 1.17.2025,1,01/18/2025 7:41,01/18/2025 7:41
+248,CCI,44T,Plaza Maestro Vigan 10062,10062,Store,Area2,edited 1.17.2025,1,01/18/2025 7:44,01/18/2025 7:44
+249,CCI,44U,Newport 10094,10094,Store,Area3,edited 1.17.2025,1,01/18/2025 7:46,01/18/2025 7:46
+250,CCI,44V,SM Fairview 10150,10150,Store,Area4,edited 9.2.2025,1,01/18/2025 7:48,09/03/2025 5:01
+251,CCI,44W,Robinsons Ermita Adult 10024,10024,Store,Area3,edited 1.17.2025,1,01/18/2025 7:49,01/18/2025 7:49
+252,CCI,44X,Ayala Marquee Pampanga A 10092,10092,Store,Area2,edited 1.17.2025,1,01/18/2025 7:51,01/18/2025 7:51
+253,CCI,44Y,SM Gensan 10161,10161,Store,Area6,edited 1.17.2025,1,01/18/2025 7:52,01/18/2025 7:52
+254,CCI,44Z,SM Megamall - Bldg B 10002,10002,Store,Area4,edited 1.17.2025,1,01/18/2025 7:54,01/18/2025 7:54
+255,CCI,450,SM North Edsa Adult 10078,10078,Store,Area4,edited 1.17.2025,1,01/18/2025 7:56,01/18/2025 7:56
+256,CCI,457,Ayala Trinoma Adult 10082,10082,Store,Area4,edited 1.17.2025,1,01/18/2025 7:59,01/18/2025 7:59
+257,CCI,459,Robinsons Magnolia Adult 10130,10130,Store,Area4,edited 1.17.2025,1,01/18/2025 8:01,01/18/2025 8:01
+258,CCI,45C,Festival Adult 10037,10037,Store,Area3,edited 1.17.2025,1,01/18/2025 8:05,01/18/2025 8:05
+259,CCI,45D,SM San Lazaro 10165,10165,Store,Area3,edited 1.17.2025,1,01/18/2025 8:06,01/18/2025 8:06
+260,CCI,45E,SM Manila Adult 10151,10151,Store,Area3,edited 1.17.2025,1,01/18/2025 8:09,01/18/2025 8:09
+261,CCI,45F,Ayala Fairview 10140,10140,Store,Area4,edited 9.2.2025,1,01/18/2025 8:15,09/03/2025 5:01
+262,CCI,45V,SM City Olongapo Central 10191,10191,Store,Area2,edited 1.17.2025,1,01/18/2025 8:20,01/18/2025 8:20
+263,CCI,47T,Outlet-Ayala Centrio CDO 12168,12168,Store,Area6,edited 1.21.2025,1,01/22/2025 7:29,01/22/2025 7:29
+264,CCI,47U,Outlet-Acienda Designer 12184,12184,Store,Area1,edited 1.21.2025,1,01/22/2025 7:30,01/22/2025 7:30
+265,CCI,47V,Outlet-Alimall 12014,12014,Store,Area4,edited 1.21.2025,1,01/22/2025 7:32,01/22/2025 7:32
+266,CCI,45A,Robinsons Galleria 10003,10003,Store,Area4,NEW CODE,1,01/23/2025 0:37,01/23/2025 0:37
+267,DII,HQ1,Quality Control,80320,Head Office,HO,new dept,1,03/06/2025 8:23,03/06/2025 8:23
+268,CCI,464,SM Dasmarinas 10064,10064,Store,Area1,new whse code,1,06/19/2025 0:40,06/19/2025 0:40
+269,CCI,480,Warehouse - Employee Store,14032,Store,HO,For Uniform,1,06/20/2025 2:24,06/20/2025 2:39
+270,CCI,465,Shoppers Gateway Zamboanga 11221,11221,Store,Area6,New Store,1,09/10/2025 4:21,09/10/2025 4:21
+271,CCI,486,Roving POS HO-CCI 19189,19189,Store,Area1,selling event,1,10/02/2025 2:43,10/02/2025 2:43
+272,CCI,487,Roving POS HO-CCI 19194,19194,Store,Area2,selling event,1,10/31/2025 5:33,10/31/2025 5:33
+273,CCI,488,Roving POS HO-CCI 19195,488,Store,Area1,Selling event,1,12/09/2025 23:56,12/09/2025 23:56
+274,CCI,467,ISS SM Megamall 11222,11222,Store,Area4,New cost center,1,02/03/2026 6:34,02/03/2026 6:34
+275,DII,HEO,Executive Office,80010,Head Office,HO,encoded 021226,1,02/13/2026 2:01,04/22/2026 7:26
+276,CCI,466,Robinsons Tuguegarao 10183,10183,Store,Area2,NEW CODE,1,02/19/2026 5:13,02/24/2026 4:45
+277,DII,HMS,Marketing,80280,Head Office,HO,encoded 03122026,1,03/13/2026 4:30,03/13/2026 4:30

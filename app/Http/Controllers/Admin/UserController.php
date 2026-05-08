@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use App\Models\Department;
+use App\Services\DepartmentService;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -14,7 +15,10 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function __construct(protected UserService $userService) {}
+    public function __construct(
+        protected UserService $userService,
+        protected DepartmentService $departmentService,
+    ) {}
 
     public function index(Request $request)
     {
@@ -22,7 +26,7 @@ class UserController extends Controller
 
         $search = $request->input('search');
 
-        $users = User::with('department')
+        $users = User::with(['department', 'externalDepartmentReference'])
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -36,11 +40,15 @@ class UserController extends Controller
         $totalUsers = User::count();
         $activeUsers = User::where('is_active', true)->count();
 
-        $departments = Department::orderBy('name')->get();
+        $departments = Department::with('externalReference')
+            ->orderBy('type')
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('Admin/Users/Index', [
             'users' => $users,
             'departments' => $departments,
+            'storeAreas' => $this->departmentService->getStoreAreas(),
             'filters' => [
                 'search' => $search
             ],

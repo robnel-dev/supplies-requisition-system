@@ -1,7 +1,8 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { Plus, X, Check, Users as UsersIcon, UserCheck, Edit, Trash2, Key, Search, AlertTriangle } from 'lucide-vue-next';
+import axios from 'axios';
+import { Plus, X, Check, Users as UsersIcon, Edit, Trash2, Key, Search, AlertTriangle, RotateCcw } from 'lucide-vue-next';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -10,7 +11,7 @@ import InputError from '@/Components/InputError.vue';
 import PageHeader from '@/Components/PageHeader.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { useToast } from '@/Composables/useToast';
-import { debounce } from 'lodash-es'
+import { debounce } from 'lodash-es';
 
 const props = defineProps({
     users: Object,
@@ -19,32 +20,31 @@ const props = defineProps({
     stats: Object,
 });
 
-// --- State Management ---
 const isModalOpen = ref(false);
 const isPasswordModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isEditMode = ref(false);
 const editingId = ref(null);
 const userToManage = ref(null);
+const storeRefs = ref([]);
+const loadingStores = ref(false);
+const selectedReference = ref(null);
+const costCenterLocked = ref(false);
 
-// --- Search Logic (Debounced) ---
 const search = ref(props.filters.search || '');
 
 watch(search, debounce((value) => {
     router.get(route('admin.users.index'), { search: value }, { preserveState: true, preserveScroll: true, replace: true });
 }, 300));
 
-
-// --- Toast State Management ---
 const { showToast } = useToast();
 
-
-// --- Forms Initial States ---
 const initialFormState = {
     name: '',
     email: '',
     role: 'requestor',
     department_id: '',
+    external_department_reference_id: '',
     cost_center: '',
     password: '',
     password_confirmation: '',
@@ -55,33 +55,132 @@ const initialPasswordState = {
     password_confirmation: '',
 };
 
-// Initialize Forms
 const form = useForm({ ...initialFormState });
 const passwordForm = useForm({ ...initialPasswordState });
 
-// --- Main Modal Actions ---
+const selectedDepartment = computed(() => {
+    return props.departments.find((department) => Number(department.id) === Number(form.department_id)) || null;
+});
+
+const referenceLabel = (reference) => {
+    const company = reference.company_code ? ` (${reference.company_code})` : '';
+
+    return `${reference.department_code} - ${reference.name}${company}`;
+};
+
+const resetReferenceState = () => {
+    storeRefs.value = [];
+    loadingStores.value = false;
+    selectedReference.value = null;
+    costCenterLocked.value = false;
+};
+
+const loadStoreRefs = async (area) => {
+    if (!area) {
+        storeRefs.value = [];
+        return;
+    }
+
+    loadingStores.value = true;
+
+    try {
+        const response = await axios.get(route('admin.departments.store-refs', area));
+        storeRefs.value = response.data;
+    } catch {
+        storeRefs.value = [];
+        showToast('Unable to load stores for the selected area.', 'error');
+    } finally {
+        loadingStores.value = false;
+    }
+};
+
+const handleDepartmentChange = async () => {
+    form.external_department_reference_id = '';
+    form.cost_center = '';
+    resetReferenceState();
+
+    const department = selectedDepartment.value;
+
+    if (!department) {
+        return;
+    }
+
+    if (department.type === 'head_office') {
+        selectedReference.value = department.external_reference || null;
+        form.external_department_reference_id = department.external_department_reference_id || '';
+        form.cost_center = department.cost_center || '';
+        costCenterLocked.value = Boolean(form.cost_center);
+        return;
+    }
+
+    await loadStoreRefs(department.area);
+};
+
+const selectStoreReference = () => {
+    if (!form.external_department_reference_id) {
+        selectedReference.value = null;
+        form.cost_center = '';
+        costCenterLocked.value = false;
+        return;
+    }
+
+    const reference = storeRefs.value.find((item) => Number(item.id) === Number(form.external_department_reference_id));
+
+    selectedReference.value = reference || null;
+    form.cost_center = reference?.cost_center || '';
+    costCenterLocked.value = Boolean(reference?.cost_center);
+};
+
+const overrideCostCenter = () => {
+    costCenterLocked.value = false;
+};
+
+const useManualCostCenter = () => {
+    form.external_department_reference_id = '';
+    selectedReference.value = null;
+    costCenterLocked.value = false;
+};
+
+const prepareEditReferenceState = async (user) => {
+    resetReferenceState();
+
+    const department = props.departments.find((item) => Number(item.id) === Number(user.department_id));
+
+    if (!department) {
+        return;
+    }
+
+    if (department.type === 'head_office') {
+        selectedReference.value = user.external_department_reference || department.external_reference || null;
+        costCenterLocked.value = Boolean(user.cost_center);
+        return;
+    }
+
+    await loadStoreRefs(department.area);
+    selectedReference.value = user.external_department_reference || null;
+    costCenterLocked.value = Boolean(user.external_department_reference_id);
+};
+
 const openCreateModal = () => {
     isEditMode.value = false;
     editingId.value = null;
-
-    // Force defaults back to empty before resetting
     form.defaults(initialFormState);
     form.reset();
     form.clearErrors();
-
+    resetReferenceState();
     isModalOpen.value = true;
 };
 
-const openEditModal = (user) => {
+const openEditModal = async (user) => {
     isEditMode.value = true;
     editingId.value = user.id;
 
-    // Set defaults to the selected user's data
     form.defaults({
         name: user.name,
         email: user.email,
         role: user.role,
         department_id: user.department_id || '',
+        external_department_reference_id: user.external_department_reference_id || '',
         cost_center: user.cost_center || '',
         password: '',
         password_confirmation: '',
@@ -89,14 +188,17 @@ const openEditModal = (user) => {
     form.reset();
     form.clearErrors();
 
+    await prepareEditReferenceState(user);
     isModalOpen.value = true;
 };
 
 const closeModal = () => {
     isModalOpen.value = false;
+
     setTimeout(() => {
         form.reset();
         form.clearErrors();
+        resetReferenceState();
     }, 200);
 };
 
@@ -123,7 +225,6 @@ const submit = () => {
     }
 };
 
-// --- Password Actions ---
 const openPasswordModal = (user) => {
     userToManage.value = user;
     passwordForm.defaults(initialPasswordState);
@@ -147,7 +248,6 @@ const submitPassword = () => {
     });
 };
 
-// --- Delete Actions ---
 const confirmDelete = (user) => {
     userToManage.value = user;
     isDeleteModalOpen.value = true;
@@ -166,11 +266,7 @@ const deleteUser = () => {
         },
         onError: (errors) => {
             closeDeleteModal();
-            if (errors.delete) {
-                showToast(errors.delete, 'error');
-            } else {
-                showToast('An error occurred.', 'error');
-            }
+            showToast(errors.delete || 'An error occurred.', 'error');
         },
         preserveScroll: true,
     });
@@ -178,7 +274,6 @@ const deleteUser = () => {
 </script>
 
 <template>
-
     <Head title="Users" />
 
     <AppLayout>
@@ -187,8 +282,7 @@ const deleteUser = () => {
 
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                    <div
-                        class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                    <div class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
                         <div class="p-3 rounded-full bg-brand-blue-dark/10 text-brand-blue-dark mr-4">
                             <UsersIcon class="w-6 h-6" />
                         </div>
@@ -198,8 +292,7 @@ const deleteUser = () => {
                         </div>
                     </div>
                 </div>
-                <div
-                    class="bg-white rounded-lg shadow-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
+                <div class="bg-white rounded-lg shadow-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                         <div class="relative w-full sm:w-64">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -225,6 +318,7 @@ const deleteUser = () => {
                                 <th class="px-6 py-4">Email Address</th>
                                 <th class="px-6 py-4">User Role</th>
                                 <th class="px-6 py-4">Department / Area</th>
+                                <th class="px-6 py-4">Store / Reference</th>
                                 <th class="px-6 py-4">Cost Center</th>
                                 <th class="px-6 py-4 text-center">Actions</th>
                             </tr>
@@ -244,9 +338,12 @@ const deleteUser = () => {
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 font-medium text-gray-800">
-                                    {{ user.department ? `${user.department.name} (${user.department.code})` : '—' }}
+                                    {{ user.department ? `${user.department.name} (${user.department.code})` : '-' }}
                                 </td>
-                                <td class="px-6 py-4 text-gray-600">{{ user.cost_center || '—' }}</td>
+                                <td class="px-6 py-4 text-gray-600">
+                                    {{ user.external_department_reference ? referenceLabel(user.external_department_reference) : '-' }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">{{ user.cost_center || '-' }}</td>
                                 <td class="px-6 py-4 text-center">
                                     <button @click="openEditModal(user)"
                                         class="text-[#1369a8] hover:text-[#0b426e] transition-colors mr-3"
@@ -265,7 +362,7 @@ const deleteUser = () => {
                                 </td>
                             </tr>
                             <tr v-if="users.data.length === 0">
-                                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                                     No users found matching your search.
                                 </td>
                             </tr>
@@ -289,7 +386,6 @@ const deleteUser = () => {
             </div>
 
             <form @submit.prevent="submit" class="flex flex-col bg-white">
-
                 <div class="p-6 bg-gray-50/50 overflow-y-auto max-h-[70vh] flex flex-col gap-5">
                     <div>
                         <InputLabel for="name" value="Account Name" />
@@ -297,12 +393,14 @@ const deleteUser = () => {
                             class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
                         <InputError :message="form.errors.name" class="mt-2" />
                     </div>
+
                     <div>
                         <InputLabel for="email" value="Email Address" />
                         <TextInput id="email" v-model="form.email" type="email"
                             class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
                         <InputError :message="form.errors.email" class="mt-2" />
                     </div>
+
                     <div>
                         <InputLabel for="role" value="User Role" />
                         <select id="role" v-model="form.role"
@@ -313,22 +411,58 @@ const deleteUser = () => {
                         </select>
                         <InputError :message="form.errors.role" class="mt-2" />
                     </div>
+
                     <div>
                         <InputLabel for="department_id" value="Department / Area" />
-                        <select id="department_id" v-model="form.department_id"
+                        <select id="department_id" v-model="form.department_id" @change="handleDepartmentChange"
                             class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
                             <option value="">Select Department</option>
                             <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                                {{ dept.name }} ({{ dept.code }})
+                                {{ dept.type === 'store' ? 'Store Area' : 'Head Office' }} - {{ dept.name }} ({{ dept.code }})
                             </option>
                         </select>
                         <InputError :message="form.errors.department_id" class="mt-2" />
                     </div>
+
+                    <div v-if="selectedDepartment?.type === 'store'">
+                        <InputLabel for="external_department_reference_id" value="Store" />
+                        <select id="external_department_reference_id" v-model="form.external_department_reference_id" @change="selectStoreReference"
+                            :disabled="loadingStores"
+                            class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm disabled:bg-gray-100">
+                            <option value="">{{ loadingStores ? 'Loading stores...' : 'Manual Cost Center' }}</option>
+                            <option v-for="reference in storeRefs" :key="reference.id" :value="reference.id">
+                                {{ referenceLabel(reference) }}
+                            </option>
+                        </select>
+                        <InputError :message="form.errors.external_department_reference_id" class="mt-2" />
+                    </div>
+
+                    <div v-if="selectedDepartment?.type === 'head_office' && selectedReference"
+                        class="rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
+                        {{ referenceLabel(selectedReference) }}
+                    </div>
+
                     <div>
                         <InputLabel for="cost_center" value="Cost Center" />
-                        <TextInput id="cost_center" v-model="form.cost_center" type="text"
-                            class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
+                        <div class="relative mt-1">
+                            <TextInput id="cost_center" v-model="form.cost_center" type="text"
+                                :readonly="costCenterLocked"
+                                :class="['block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm pr-28', costCenterLocked ? 'bg-gray-100' : '']" />
+                            <span v-if="costCenterLocked"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                Auto
+                            </span>
+                        </div>
                         <InputError :message="form.errors.cost_center" class="mt-2" />
+                        <div v-if="costCenterLocked" class="mt-2 flex gap-4">
+                            <button type="button" @click="overrideCostCenter" class="text-sm font-bold text-[#1369a8] hover:text-[#0b426e]">
+                                Override Cost Center
+                            </button>
+                            <button v-if="selectedDepartment?.type === 'store'" type="button" @click="useManualCostCenter"
+                                class="inline-flex items-center text-sm font-bold text-gray-600 hover:text-gray-900">
+                                <RotateCcw class="w-4 h-4 mr-1.5" /> Manual Entry
+                            </button>
+                        </div>
                     </div>
 
                     <template v-if="!isEditMode">
@@ -356,7 +490,6 @@ const deleteUser = () => {
                         <Check class="w-4 h-4 mr-2" /> {{ isEditMode ? 'Save Changes' : 'Create Record' }}
                     </button>
                 </div>
-
             </form>
         </Modal>
 
@@ -411,8 +544,7 @@ const deleteUser = () => {
                 <div class="mt-4 text-center">
                     <h3 class="text-lg font-black text-gray-900">Delete User Account</h3>
                     <p class="mt-2 text-sm text-gray-500">
-                        Are you sure you want to delete <span class="font-bold text-gray-800">{{ userToManage?.name
-                        }}</span>?<br>
+                        Are you sure you want to delete <span class="font-bold text-gray-800">{{ userToManage?.name }}</span>?<br>
                         This action is permanent and cannot be undone.
                     </p>
                 </div>
@@ -426,6 +558,5 @@ const deleteUser = () => {
                 </div>
             </div>
         </Modal>
-
     </AppLayout>
 </template>

@@ -12,14 +12,13 @@ class DepartmentFactory extends Factory
     public function definition(): array
     {
         return [
-            // Example: "Tech Solutions Department"
             'name' => $this->faker->company() . ' Department',
-            
-            // Example: "DEP"
             'code' => strtoupper($this->faker->unique()->lexify('???')),
-            
-            // Randomly picks between head_office or store
             'type' => $this->faker->randomElement(['head_office', 'store']),
+            'area' => $this->faker->optional()->randomElement(['HO', 'Area1', 'Area2', 'Area3', 'Area4', 'Area5', 'Area6']),
+            'cost_center' => (string) $this->faker->numberBetween(10000, 99999),
+            'cost_center_source' => 'manual',
+            'is_custom' => true,
         ];
     }
 }
