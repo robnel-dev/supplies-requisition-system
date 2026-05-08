@@ -46,7 +46,7 @@ const formatDate = (date) => {
 
     <AppLayout>
 
-        <PageHeader title="Active Requests" description="Track your pending, approved, and released supply requests." />
+        <PageHeader title="Active Requests" description="Track your pending and approved supply requests." />
 
         <!-- Table Card -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">

@@ -184,7 +184,7 @@ const getDisplayDescription = (supply) => {
     <AppLayout>
         <div class="relative">
             <PageHeader title="Supplies Management"
-                description="Manage requestable supplies, categories, and sync items from the external reference." />
+                description="Manage requestable supplies, categories, and monitor inventory status." />
 
             <!-- Stats + Filters Row -->
             <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-6">
@@ -360,7 +360,7 @@ const getDisplayDescription = (supply) => {
                         <InputLabel value="Item Code" />
                         <TextInput v-model="form.item_code"
                             @input="!isEditMode && fetchExternalReferences(form.item_code)" :readonly="isEditMode"
-                            type="text" placeholder="Type to search external system..."
+                            type="text" placeholder="Input item code from M3 supplies..."
                             class="mt-1 block w-full focus:border-brand-blue-darker focus:ring-brand-blue-darker shadow-sm"
                             :class="isEditMode ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''" />
                         <p v-if="isEditMode" class="text-xs text-gray-400 mt-1">Item code cannot be changed after
@@ -385,7 +385,7 @@ const getDisplayDescription = (supply) => {
                         <textarea v-model="form.item_description"
                             class="mt-1 block w-full border-gray-300 focus:border-brand-blue-darker focus:ring-brand-blue-darker rounded-md shadow-sm"
                             rows="2"
-                            placeholder="Auto-filled from external system, or enter custom description"></textarea>
+                            placeholder="Auto-filled or enter custom description"></textarea>
                         <InputError :message="form.errors.item_description" class="mt-2" />
                     </div>
 

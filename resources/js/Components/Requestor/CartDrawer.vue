@@ -58,7 +58,7 @@ const promptRemoveItem = (item) => {
 const promptSubmitRequest = () => {
     openConfirmDialog({
         title: 'Submit request for approval',
-        message: 'Once you submit, this request will be sent for approval and you will not be able to edit the items until it is processed.',
+        message: 'Once you submit, this request will be sent to your manager for approval.',
         confirmText: 'Submit request',
         cancelText: 'Cancel',
         destructive: false,

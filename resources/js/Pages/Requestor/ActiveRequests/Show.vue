@@ -131,14 +131,6 @@ const confirmEdit = () => {
             </div>
 
             <div class="flex items-center gap-3 flex-wrap">
-                <!-- Status badge -->
-                <span :class="[
-                    'inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border',
-                    getStatus(supplyRequest.status).color
-                ]">
-                    <component :is="getStatus(supplyRequest.status).icon" class="w-4 h-4" />
-                    {{ getStatus(supplyRequest.status).label }}
-                </span>
 
                 <!-- Edit button (only when pending) -->
                 <button v-if="canEdit" @click="isEditModalOpen = true"
@@ -163,11 +155,29 @@ const confirmEdit = () => {
 
                 <!-- Request Info Card -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="bg-brand-blue-dark px-6 py-4">
+                    <div class="flex items-center justify-between bg-brand-blue-dark px-6 py-4">
+
+                        <!-- Left -->
                         <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                             <FileText class="w-4 h-4 opacity-80" />
                             Request Information
                         </h2>
+
+                        <!-- Right -->
+                        <div class="flex items-center gap-2">
+                            <!-- <span class="text-[11px] font-semibold uppercase tracking-wider text-white">
+                                Status
+                            </span> -->
+
+                            <span :class="[
+                                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border leading-none',
+                                getStatus(supplyRequest.status).color
+                            ]">
+                                <component :is="getStatus(supplyRequest.status).icon" class="w-3.5 h-3.5" />
+                                {{ getStatus(supplyRequest.status).label }}
+                            </span>
+                        </div>
+
                     </div>
 
                     <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">

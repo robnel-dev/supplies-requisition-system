@@ -11,7 +11,7 @@ const stats = [
 
 <template>
     <div>
-        <PageHeader title="Requestor Dashboard" description="System overview and pending releases" />
+        <PageHeader title="Requestor Dashboard" description="Overview of your supply requests and approval progress." />
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div v-for="stat in stats" :key="stat.label"
@@ -27,7 +27,7 @@ const stats = [
         <div class="mt-8 bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl p-6">
             <h3 class="text-lg font-bold text-brand-navy mb-4">Recent System Activity</h3>
             <div class="text-sm text-gray-500 py-8 text-center border-2 border-dashed border-gray-100 rounded-lg">
-                Activity feed will be displayed here (Releases, User Additions, etc.)
+                Activity feed will be displayed here (Recent Updates, Notifications, etc.)
             </div>
         </div>
     </div>
