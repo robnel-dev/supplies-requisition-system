@@ -62,10 +62,24 @@ const selectedDepartment = computed(() => {
     return props.departments.find((department) => Number(department.id) === Number(form.department_id)) || null;
 });
 
+const accountNameLocked = computed(() => {
+    return selectedDepartment.value?.type === 'store' && Boolean(selectedReference.value);
+});
+
 const referenceLabel = (reference) => {
     const company = reference.company_code ? ` (${reference.company_code})` : '';
 
     return `${reference.department_code} - ${reference.name}${company}`;
+};
+
+const departmentLabel = (department) => `${department.name} (${department.code})`;
+
+const syncStoreAccountName = (reference) => {
+    if (selectedDepartment.value?.type !== 'store') {
+        return;
+    }
+
+    form.name = reference?.name || '';
 };
 
 const resetReferenceState = () => {
@@ -95,6 +109,9 @@ const loadStoreRefs = async (area) => {
 };
 
 const handleDepartmentChange = async () => {
+    const previousStoreName = selectedReference.value?.name || '';
+    const shouldClearStoreName = previousStoreName && form.name === previousStoreName;
+
     form.external_department_reference_id = '';
     form.cost_center = '';
     resetReferenceState();
@@ -102,10 +119,15 @@ const handleDepartmentChange = async () => {
     const department = selectedDepartment.value;
 
     if (!department) {
+        form.name = '';
         return;
     }
 
     if (department.type === 'head_office') {
+        if (shouldClearStoreName) {
+            form.name = '';
+        }
+
         selectedReference.value = department.external_reference || null;
         form.external_department_reference_id = department.external_department_reference_id || '';
         form.cost_center = department.cost_center || '';
@@ -113,6 +135,7 @@ const handleDepartmentChange = async () => {
         return;
     }
 
+    form.name = '';
     await loadStoreRefs(department.area);
 };
 
@@ -121,6 +144,7 @@ const selectStoreReference = () => {
         selectedReference.value = null;
         form.cost_center = '';
         costCenterLocked.value = false;
+        syncStoreAccountName(null);
         return;
     }
 
@@ -129,6 +153,7 @@ const selectStoreReference = () => {
     selectedReference.value = reference || null;
     form.cost_center = reference?.cost_center || '';
     costCenterLocked.value = Boolean(reference?.cost_center);
+    syncStoreAccountName(reference);
 };
 
 const overrideCostCenter = () => {
@@ -139,6 +164,7 @@ const useManualCostCenter = () => {
     form.external_department_reference_id = '';
     selectedReference.value = null;
     costCenterLocked.value = false;
+    syncStoreAccountName(null);
 };
 
 const prepareEditReferenceState = async (user) => {
@@ -157,8 +183,11 @@ const prepareEditReferenceState = async (user) => {
     }
 
     await loadStoreRefs(department.area);
-    selectedReference.value = user.external_department_reference || null;
+    selectedReference.value = user.external_department_reference
+        || storeRefs.value.find((item) => Number(item.id) === Number(user.external_department_reference_id))
+        || null;
     costCenterLocked.value = Boolean(user.external_department_reference_id);
+    syncStoreAccountName(selectedReference.value);
 };
 
 const openCreateModal = () => {
@@ -203,6 +232,8 @@ const closeModal = () => {
 };
 
 const submit = () => {
+    syncStoreAccountName(selectedReference.value);
+
     if (isEditMode.value) {
         form.transform((data) => {
             const { password, password_confirmation, ...editData } = data;
@@ -318,7 +349,6 @@ const deleteUser = () => {
                                 <th class="px-6 py-4">Email Address</th>
                                 <th class="px-6 py-4">User Role</th>
                                 <th class="px-6 py-4">Department / Area</th>
-                                <th class="px-6 py-4">Store / Reference</th>
                                 <th class="px-6 py-4">Cost Center</th>
                                 <th class="px-6 py-4 text-center">Actions</th>
                             </tr>
@@ -340,9 +370,6 @@ const deleteUser = () => {
                                 <td class="px-6 py-4 font-medium text-gray-800">
                                     {{ user.department ? `${user.department.name} (${user.department.code})` : '-' }}
                                 </td>
-                                <td class="px-6 py-4 text-gray-600">
-                                    {{ user.external_department_reference ? referenceLabel(user.external_department_reference) : '-' }}
-                                </td>
                                 <td class="px-6 py-4 text-gray-600">{{ user.cost_center || '-' }}</td>
                                 <td class="px-6 py-4 text-center">
                                     <button @click="openEditModal(user)"
@@ -362,7 +389,7 @@ const deleteUser = () => {
                                 </td>
                             </tr>
                             <tr v-if="users.data.length === 0">
-                                <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                                     No users found matching your search.
                                 </td>
                             </tr>
@@ -388,9 +415,46 @@ const deleteUser = () => {
             <form @submit.prevent="submit" class="flex flex-col bg-white">
                 <div class="p-6 bg-gray-50/50 overflow-y-auto max-h-[70vh] flex flex-col gap-5">
                     <div>
+                        <InputLabel for="department_id" value="Department / Area" />
+                        <select id="department_id" v-model="form.department_id" @change="handleDepartmentChange"
+                            class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
+                            <option value="">Select Department</option>
+                            <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+                                {{ departmentLabel(dept) }}
+                            </option>
+                        </select>
+                        <InputError :message="form.errors.department_id" class="mt-2" />
+                    </div>
+
+                    <div v-if="selectedDepartment?.type === 'store'">
+                        <InputLabel for="external_department_reference_id" value="Store (Reference)" />
+                        <select id="external_department_reference_id" v-model="form.external_department_reference_id" @change="selectStoreReference"
+                            :disabled="loadingStores"
+                            class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm disabled:bg-gray-100">
+                            <option value="">{{ loadingStores ? 'Loading stores...' : 'Manual Cost Center' }}</option>
+                            <option v-for="reference in storeRefs" :key="reference.id" :value="reference.id">
+                                {{ referenceLabel(reference) }}
+                            </option>
+                        </select>
+                        <InputError :message="form.errors.external_department_reference_id" class="mt-2" />
+                    </div>
+
+                    <div v-if="selectedDepartment?.type === 'head_office' && selectedReference"
+                        class="rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
+                        {{ referenceLabel(selectedReference) }}
+                    </div>
+
+                    <div>
                         <InputLabel for="name" value="Account Name" />
-                        <TextInput id="name" v-model="form.name" type="text"
-                            class="mt-1 block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm" />
+                        <div class="relative mt-1">
+                            <TextInput id="name" v-model="form.name" type="text"
+                                :readonly="accountNameLocked"
+                                :class="['block w-full focus:border-[#1d62c7] focus:ring-[#1d62c7] shadow-sm pr-16', accountNameLocked ? 'bg-gray-100' : '']" />
+                            <span v-if="accountNameLocked"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                Auto
+                            </span>
+                        </div>
                         <InputError :message="form.errors.name" class="mt-2" />
                     </div>
 
@@ -410,36 +474,6 @@ const deleteUser = () => {
                             <option value="hr_admin">HR Admin</option>
                         </select>
                         <InputError :message="form.errors.role" class="mt-2" />
-                    </div>
-
-                    <div>
-                        <InputLabel for="department_id" value="Department / Area" />
-                        <select id="department_id" v-model="form.department_id" @change="handleDepartmentChange"
-                            class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
-                            <option value="">Select Department</option>
-                            <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                                {{ dept.type === 'store' ? 'Store Area' : 'Head Office' }} - {{ dept.name }} ({{ dept.code }})
-                            </option>
-                        </select>
-                        <InputError :message="form.errors.department_id" class="mt-2" />
-                    </div>
-
-                    <div v-if="selectedDepartment?.type === 'store'">
-                        <InputLabel for="external_department_reference_id" value="Store" />
-                        <select id="external_department_reference_id" v-model="form.external_department_reference_id" @change="selectStoreReference"
-                            :disabled="loadingStores"
-                            class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm disabled:bg-gray-100">
-                            <option value="">{{ loadingStores ? 'Loading stores...' : 'Manual Cost Center' }}</option>
-                            <option v-for="reference in storeRefs" :key="reference.id" :value="reference.id">
-                                {{ referenceLabel(reference) }}
-                            </option>
-                        </select>
-                        <InputError :message="form.errors.external_department_reference_id" class="mt-2" />
-                    </div>
-
-                    <div v-if="selectedDepartment?.type === 'head_office' && selectedReference"
-                        class="rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
-                        {{ referenceLabel(selectedReference) }}
                     </div>
 
                     <div>

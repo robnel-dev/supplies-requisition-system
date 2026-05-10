@@ -25,7 +25,11 @@ class RequestController extends Controller
                 SupplyRequest::STATUS_APPROVED,
                 SupplyRequest::STATUS_RELEASED,
             ])
-            ->with(['department'])
+            ->with([
+                'department',
+                'user:id,name,external_department_reference_id',
+                'user.externalDepartmentReference:id,name',
+            ])
             ->latest('request_date')
             ->paginate(10)
             ->withQueryString();
@@ -48,7 +52,11 @@ class RequestController extends Controller
                 SupplyRequest::STATUS_CANCELLED,
                 SupplyRequest::STATUS_ARCHIVED,
             ])
-            ->with(['department'])
+            ->with([
+                'department',
+                'user:id,name,external_department_reference_id',
+                'user.externalDepartmentReference:id,name',
+            ])
             ->latest('request_date')
             ->paginate(10)
             ->withQueryString();
@@ -69,6 +77,8 @@ class RequestController extends Controller
 
         $supplyRequest->load([
             'department',
+            'user:id,name,external_department_reference_id',
+            'user.externalDepartmentReference:id,name',
             'approver',
             'items',
             'timelines.performer',
@@ -95,6 +105,8 @@ class RequestController extends Controller
 
         $supplyRequest->load([
             'department',
+            'user:id,name,external_department_reference_id',
+            'user.externalDepartmentReference:id,name',
             'approver',
             'items',
             'timelines.performer',

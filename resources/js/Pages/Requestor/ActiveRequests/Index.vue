@@ -1,6 +1,5 @@
 <script setup>
-import { computed } from 'vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { ClipboardList, Eye, ChevronRight, Clock, CheckCircle2, XCircle, Package, Send, Archive } from 'lucide-vue-next';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import PageHeader from '@/Components/PageHeader.vue';
@@ -38,6 +37,18 @@ const formatDate = (date) => {
         hour: '2-digit', minute: '2-digit',
     });
 };
+
+const requestDepartmentLabel = (request) => {
+    const departmentName = request.department?.name || '-';
+
+    if (request.department?.type !== 'store') {
+        return departmentName;
+    }
+
+    const storeName = request.user?.external_department_reference?.name || request.user?.name;
+
+    return storeName ? `${departmentName} - ${storeName}` : departmentName;
+};
 </script>
 
 <template>
@@ -74,7 +85,7 @@ const formatDate = (date) => {
                             </td>
 
                             <td class="px-6 py-4 text-gray-700">
-                                {{ req.department?.name ?? '—' }}
+                                {{ requestDepartmentLabel(req) }}
                             </td>
 
                             <td class="px-6 py-4">

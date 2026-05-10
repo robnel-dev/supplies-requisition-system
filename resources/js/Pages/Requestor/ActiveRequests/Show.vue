@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import {
     ArrowLeft, Clock, CheckCircle2, XCircle, Package, Archive,
     Send, User, Building2, CalendarDays, Hash, AlertTriangle,
@@ -16,10 +16,10 @@ const props = defineProps({
 });
 
 const { showToast } = useToast();
-const page = usePage();
 
 // ── Status config ───────────────────────────────────────────────────────────
 const statusConfig = {
+    draft: { label: 'Draft', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: Pencil },
     pending_approval: { label: 'Pending Approval', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: Clock },
     approved: { label: 'Approved', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircle2 },
     rejected: { label: 'Rejected', color: 'bg-red-100 text-red-800 border-red-200', icon: XCircle },
@@ -61,6 +61,25 @@ const formatDateShort = (date) => {
         hour: '2-digit', minute: '2-digit',
     });
 };
+
+const requestDepartmentLabel = computed(() => {
+    const departmentName = props.supplyRequest.department?.name || '-';
+
+    if (props.supplyRequest.department?.type !== 'store') {
+        return departmentName;
+    }
+
+    const storeName = props.supplyRequest.user?.external_department_reference?.name
+        || props.supplyRequest.user?.name;
+
+    return storeName ? `${departmentName} - ${storeName}` : departmentName;
+});
+
+const isDraftRequest = computed(() => props.supplyRequest.status === 'draft');
+const backLinkHref = computed(() => isDraftRequest.value
+    ? route('requestor.catalog.index')
+    : route('requestor.requests.index'));
+const backLinkLabel = computed(() => isDraftRequest.value ? 'Back to Catalog' : 'Back to My Requests');
 
 // Only pending_approval can be cancelled or edited
 const canCancel = computed(() => props.supplyRequest.status === 'pending_approval');
@@ -114,10 +133,10 @@ const confirmEdit = () => {
 
         <!-- Back link -->
         <div class="mb-6">
-            <Link :href="route('requestor.requests.index')"
+            <Link :href="backLinkHref"
                 class="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue-dark transition-colors">
                 <ArrowLeft class="w-4 h-4" />
-                Back to My Requests
+                {{ backLinkLabel }}
             </Link>
         </div>
 
@@ -218,7 +237,7 @@ const confirmEdit = () => {
                                 <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Department /
                                     Store</p>
                                 <p class="text-sm font-semibold text-gray-900 mt-0.5">
-                                    {{ supplyRequest.department?.name ?? '—' }}
+                                    {{ requestDepartmentLabel }}
                                 </p>
                             </div>
                         </div>

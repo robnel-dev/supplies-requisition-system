@@ -51,12 +51,16 @@ class CartController extends Controller
     {
         try {
             $transactionId = $this->cartService->checkout($request->user());
-            return back()->with('success', "Request #{$transactionId} submitted and is now pending approval.");
+
+            return redirect()
+                ->route('requestor.requests.index')
+                ->with('success', "Request #{$transactionId} submitted and is now pending approval.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->errors());
         } catch (\Exception $e) {
-            // Surface the real error message — not a generic one.
-            return back()->withErrors(['checkout' => $e->getMessage()]);
+            return back()->withErrors([
+                'checkout' => $e->getMessage()
+            ]);
         }
     }
 }

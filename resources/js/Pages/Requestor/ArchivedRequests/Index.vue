@@ -25,6 +25,18 @@ const formatDate = (date) => {
         hour: '2-digit', minute: '2-digit',
     });
 };
+
+const requestDepartmentLabel = (request) => {
+    const departmentName = request.department?.name || '-';
+
+    if (request.department?.type !== 'store') {
+        return departmentName;
+    }
+
+    const storeName = request.user?.external_department_reference?.name || request.user?.name;
+
+    return storeName ? `${departmentName} - ${storeName}` : departmentName;
+};
 </script>
 
 <template>
@@ -61,7 +73,7 @@ const formatDate = (date) => {
                             </td>
 
                             <td class="px-6 py-4 text-gray-700">
-                                {{ req.department?.name ?? '—' }}
+                                {{ requestDepartmentLabel(req) }}
                             </td>
 
                             <td class="px-6 py-4">

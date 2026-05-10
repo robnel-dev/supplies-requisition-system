@@ -75,8 +75,12 @@ class UserService
             ? trim((string) $data['cost_center'])
             : ($reference?->cost_center ?? $department->cost_center);
 
+        $accountName = $department->type === 'store' && $reference
+            ? $reference->name
+            : trim((string) $data['name']);
+
         return [
-            'name' => $data['name'],
+            'name' => $accountName,
             'email' => $data['email'],
             'role' => $data['role'],
             'department_id' => $department->id,

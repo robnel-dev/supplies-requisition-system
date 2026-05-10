@@ -61,6 +61,19 @@ const formatDateShort = (date) => {
     });
 };
 
+const requestDepartmentLabel = computed(() => {
+    const departmentName = props.supplyRequest.department?.name || '-';
+
+    if (props.supplyRequest.department?.type !== 'store') {
+        return departmentName;
+    }
+
+    const storeName = props.supplyRequest.user?.external_department_reference?.name
+        || props.supplyRequest.user?.name;
+
+    return storeName ? `${departmentName} - ${storeName}` : departmentName;
+});
+
 // Only pending_approval requests can be cancelled or edited
 const canCancel = computed(() => props.supplyRequest.status === 'pending_approval');
 const canEdit = computed(() => props.supplyRequest.status === 'pending_approval');
@@ -202,7 +215,7 @@ const confirmEdit = () => {
                                 <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Department /
                                     Store</p>
                                 <p class="text-sm font-semibold text-gray-900 mt-0.5">
-                                    {{ supplyRequest.department?.name ?? '—' }}
+                                    {{ requestDepartmentLabel }}
                                 </p>
                             </div>
                         </div>
