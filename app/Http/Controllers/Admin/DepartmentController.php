@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreDepartmentRequest;
 use App\Models\Department;
+use App\Models\User;
 use App\Services\DepartmentService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
@@ -13,17 +15,34 @@ class DepartmentController extends Controller
 {
     public function __construct(protected DepartmentService $service) {}
 
-    public function index()
+    public function index(Request $request)
     {
         Gate::authorize('viewAny', Department::class);
 
+        $search = $request->input('search');
+
         $departments = Department::with('externalReference')
             ->withCount('users')
+            ->when($search, function ($query, $search) {
+                $query->where('code', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('type', 'like', "%{$search}%")
+                    ->orWhere('area', 'like', "%{$search}%")
+                    ->orWhere('cost_center', 'like', "%{$search}%");
+            })
             ->orderBy('name')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/Departments/Index', [
             'departments' => $departments,
+            'filters' => [
+                'search' => $search,
+            ],
+            'stats' => [
+                'totalDepartments' => Department::count(),
+                'totalAssignedUsers' => User::count(),
+            ],
             'hoRefs' => $this->service->getHeadOfficeRefs(),
             'storeAreas' => $this->service->getStoreAreas(),
             'storeAreaOptions' => $this->service->getStoreAreaOptions(),

@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { ref, computed, watch } from 'vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import {
     AlertTriangle,
     Building2,
@@ -11,6 +11,7 @@ import {
     Trash2,
     Users,
     X,
+    Search
 } from 'lucide-vue-next';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Modal from '@/Components/Modal.vue';
@@ -18,12 +19,22 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PageHeader from '@/Components/PageHeader.vue';
+import Pagination from '@/Components/Pagination.vue';
 import { useToast } from '@/Composables/useToast';
+import { debounce } from 'lodash-es';
 
 const props = defineProps({
     departments: {
-        type: Array,
-        default: () => [],
+        type: Object,
+        default: () => ({ data: [], links: [], from: null, to: null, total: null }),
+    },
+    filters: {
+        type: Object,
+        default: () => ({ search: '' }),
+    },
+    stats: {
+        type: Object,
+        default: () => ({ totalDepartments: 0, totalAssignedUsers: 0 }),
     },
     hoRefs: {
         type: Array,
@@ -37,10 +48,19 @@ const props = defineProps({
 
 const { showToast } = useToast();
 
-const totalDepartments = computed(() => props.departments.length);
-const totalAssignedUsers = computed(() => {
-    return props.departments.reduce((total, dept) => total + (dept.users_count || 0), 0);
-});
+const search = ref(props.filters.search || '');
+
+watch(search, debounce((value) => {
+    router.get(route('admin.departments.index'), { search: value }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    });
+}, 300));
+
+const totalDepartments = computed(() => props.stats.totalDepartments || props.departments.total || 0);
+const totalAssignedUsers = computed(() => props.stats.totalAssignedUsers || 0);
+const displayDepartments = computed(() => props.departments.data || []);
 
 const isModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
@@ -221,6 +241,7 @@ const deleteDepartment = () => {
 </script>
 
 <template>
+
     <Head title="Departments" />
 
     <AppLayout>
@@ -229,7 +250,8 @@ const deleteDepartment = () => {
 
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                    <div class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                    <div
+                        class="bg-white border-l-4 border-[#1369a8] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
                         <div class="p-3 rounded-full bg-brand-blue-dark/10 text-brand-blue-dark mr-4">
                             <Building2 class="w-6 h-6" />
                         </div>
@@ -238,7 +260,8 @@ const deleteDepartment = () => {
                             <p class="text-2xl font-black text-gray-800">{{ totalDepartments }}</p>
                         </div>
                     </div>
-                    <div class="bg-white border-l-4 border-[#1d62c7] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
+                    <div
+                        class="bg-white border-l-4 border-[#1d62c7] shadow-sm rounded-r-xl p-5 flex items-center min-w-[220px]">
                         <div class="p-3 rounded-full bg-brand-blue-darker/10 text-brand-blue-darker mr-4">
                             <Users class="w-6 h-6" />
                         </div>
@@ -249,10 +272,21 @@ const deleteDepartment = () => {
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4 border border-gray-200">
-                    <button @click="openModal" class="btn-primary">
-                        <Plus class="w-5 h-5 mr-2" /> Create Department
-                    </button>
+                <div
+                    class="bg-white rounded-lg shadow-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
+                    <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                        <div class="relative w-full sm:w-64">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search class="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input v-model="search" type="text" placeholder="Search users..."
+                                class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#1d62c7] focus:border-[#1d62c7] sm:text-sm transition duration-150 ease-in-out" />
+                        </div>
+
+                        <button @click="openModal" class="btn-primary">
+                            <Plus class="w-5 h-5 mr-2" /> Create Department
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -270,7 +304,8 @@ const deleteDepartment = () => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="dept in departments" :key="dept.id" class="hover:bg-blue-50/50 transition-colors">
+                            <tr v-for="dept in displayDepartments" :key="dept.id"
+                                class="hover:bg-blue-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-gray-900">{{ dept.code }}</td>
                                 <td class="px-6 py-4 font-medium text-gray-700">{{ dept.name }}</td>
                                 <td class="px-6 py-4">
@@ -282,23 +317,28 @@ const deleteDepartment = () => {
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-gray-800">
-                                    {{ dept.type === 'store' ? 'Selected per user/store' : (dept.cost_center || 'Manual') }}
+                                    {{ dept.type === 'store' ? 'Selected per user/store' : (dept.cost_center ||
+                                        'Manual') }}
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-blue-dark/10 text-brand-blue-dark font-bold text-xs">
+                                    <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-blue-dark/10 text-brand-blue-dark font-bold text-xs">
                                         {{ dept.users_count || 0 }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <button @click="openEditModal(dept)" class="text-brand-blue-dark hover:text-[#0b426e] transition-colors mr-3" title="Edit">
+                                    <button @click="openEditModal(dept)"
+                                        class="text-brand-blue-dark hover:text-[#0b426e] transition-colors mr-3"
+                                        title="Edit">
                                         <Edit class="w-4 h-4" />
                                     </button>
-                                    <button @click="confirmDelete(dept)" class="text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                                    <button @click="confirmDelete(dept)"
+                                        class="text-red-500 hover:text-red-700 transition-colors" title="Delete">
                                         <Trash2 class="w-4 h-4" />
                                     </button>
                                 </td>
                             </tr>
-                            <tr v-if="departments.length === 0">
+                            <tr v-if="displayDepartments.length === 0">
                                 <td colspan="6" class="px-6 py-12 text-center text-gray-400">
                                     No departments found. Click "Create Department" to get started.
                                 </td>
@@ -306,6 +346,8 @@ const deleteDepartment = () => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="props.departments.links" :from="props.departments.from" :to="props.departments.to"
+                    :total="props.departments.total" :queryParams="{ search: search }" />
             </div>
         </div>
 
@@ -334,7 +376,8 @@ const deleteDepartment = () => {
 
                     <div v-if="form.type === 'head_office'">
                         <InputLabel for="ho_ref" value="Head Office Reference" />
-                        <select id="ho_ref" v-model="form.external_department_reference_id" @change="selectHeadOfficeReference"
+                        <select id="ho_ref" v-model="form.external_department_reference_id"
+                            @change="selectHeadOfficeReference"
                             class="mt-1 block w-full border-gray-300 focus:border-[#1d62c7] focus:ring-[#1d62c7] rounded-md shadow-sm">
                             <option value="">Manual Entry</option>
                             <option v-for="reference in hoRefs" :key="reference.id" :value="reference.id">
@@ -356,11 +399,13 @@ const deleteDepartment = () => {
                         <InputError :message="form.errors.area" class="mt-2" />
                     </div>
 
-                    <div v-if="hasExternalReference" class="flex items-center justify-between rounded-md border border-green-100 bg-green-50 px-3 py-2">
+                    <div v-if="hasExternalReference"
+                        class="flex items-center justify-between rounded-md border border-green-100 bg-green-50 px-3 py-2">
                         <span class="text-sm font-semibold text-green-800">
                             {{ selectedReference ? referenceLabel(selectedReference) : 'External reference selected' }}
                         </span>
-                        <button type="button" @click="useManualEntry" class="inline-flex items-center text-sm font-bold text-green-800 hover:text-green-900">
+                        <button type="button" @click="useManualEntry"
+                            class="inline-flex items-center text-sm font-bold text-green-800 hover:text-green-900">
                             <RotateCcw class="w-4 h-4 mr-1.5" /> Manual Entry
                         </button>
                     </div>
@@ -404,8 +449,10 @@ const deleteDepartment = () => {
                         </button>
                     </div>
 
-                    <div v-else class="rounded-md border border-yellow-100 bg-yellow-50 px-3 py-2 text-sm font-semibold text-yellow-900">
-                        Store area departments do not hold one cost center. The store and cost center are selected when creating or editing a user.
+                    <div v-else
+                        class="rounded-md border border-yellow-100 bg-yellow-50 px-3 py-2 text-sm font-semibold text-yellow-900">
+                        Store area departments do not hold one cost center. The store and cost center are selected when
+                        creating or editing a user.
                     </div>
                 </div>
 
@@ -430,7 +477,8 @@ const deleteDepartment = () => {
                 <div class="mt-4 text-center">
                     <h3 class="text-lg font-black text-gray-900">Confirm Deletion</h3>
                     <p class="mt-2 text-sm text-gray-500">
-                        Are you sure you want to delete <span class="font-bold text-gray-800">{{ departmentToDelete?.name }}</span>?<br>
+                        Are you sure you want to delete <span class="font-bold text-gray-800">{{
+                            departmentToDelete?.name }}</span>?<br>
                         This action cannot be undone.
                     </p>
                 </div>
