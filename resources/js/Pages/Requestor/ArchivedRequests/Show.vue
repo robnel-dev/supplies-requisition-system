@@ -4,7 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import {
     ArrowLeft, Clock, CheckCircle2, XCircle, Package, Archive,
     Send, User, Building2, CalendarDays, Hash, AlertTriangle,
-    FileText, CheckCheck, Ban, Pencil, RefreshCcw
+    FileText, CheckCheck, Ban, Pencil, RefreshCcw, Trash2, Edit3
 } from 'lucide-vue-next';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Modal from '@/Components/Modal.vue';
@@ -40,6 +40,8 @@ const timelineIcons = {
     cancelled: { icon: Ban, color: 'bg-gray-400', ring: 'ring-gray-100' },
     archived: { icon: Archive, color: 'bg-gray-400', ring: 'ring-gray-100' },
     reopened: { icon: RefreshCcw, color: 'bg-orange-400', ring: 'ring-orange-100' },
+    item_updated: { icon: Edit3, color: 'bg-sky-500', ring: 'ring-sky-100' },
+    item_removed: { icon: Trash2, color: 'bg-red-500', ring: 'ring-red-100' },
 };
 
 const getTimelineConfig = (action) =>
@@ -256,6 +258,17 @@ const confirmEdit = () => {
                             </div>
                         </div>
 
+                    </div>
+
+                    <div v-if="supplyRequest.rejection_reason"
+                        class="mx-6 mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <AlertTriangle class="w-5 h-5 text-red-600 mt-0.5" />
+                            <div>
+                                <h3 class="font-bold text-red-800">Rejection Reason</h3>
+                                <p class="text-sm text-red-700 mt-1">{{ supplyRequest.rejection_reason }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

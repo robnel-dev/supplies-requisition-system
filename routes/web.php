@@ -3,15 +3,17 @@
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\SupplyController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Requestor\CartController;
 use App\Http\Controllers\Requestor\CatalogController;
-use App\Http\Controllers\Requestor\RequestController;
+use App\Http\Controllers\Approver\RequestController as ApproverRequestController;
+use App\Http\Controllers\Requestor\RequestController as RequestorRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', fn () => inertia('Dashboard'))->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::middleware('role:hr_admin')
         ->prefix('admin')
@@ -58,26 +60,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('cart.checkout');
 
             // Supply Requests
-            Route::get('/requests', [RequestController::class, 'index'])
+            Route::get('/requests', [RequestorRequestController::class, 'index'])
                 ->name('requests.index');
-            Route::get('/requests/archived', [RequestController::class, 'archived'])
+            Route::get('/requests/archived', [RequestorRequestController::class, 'archived'])
                 ->name('requests.archived');
-            Route::get('/requests/archived/{supplyRequest}', [RequestController::class, 'showArchived'])
+            Route::get('/requests/archived/{supplyRequest}', [RequestorRequestController::class, 'showArchived'])
                 ->name('requests.archived.show');
-            Route::get('/requests/{supplyRequest}', [RequestController::class, 'show'])
+            Route::get('/requests/{supplyRequest}', [RequestorRequestController::class, 'show'])
                 ->name('requests.show');
-            Route::patch('/requests/{supplyRequest}/cancel', [RequestController::class, 'cancel'])
+            Route::patch('/requests/{supplyRequest}/cancel', [RequestorRequestController::class, 'cancel'])
                 ->name('requests.cancel');
-            Route::patch('/requests/{supplyRequest}/reopen', [RequestController::class, 'reopen'])
+            Route::patch('/requests/{supplyRequest}/reopen', [RequestorRequestController::class, 'reopen'])
                 ->name('requests.reopen');
         });
 
-    // ─── Approver (Phase 3) ───────────────────────────────────────────────
+    // ─── Approver ───────────────────────────────────────────────
     Route::middleware('role:approver')
         ->prefix('approver')
         ->name('approver.')
         ->group(function () {
-            // Approval workflow routes will live here when that module is built.
+            Route::get('/approvals', [ApproverRequestController::class, 'index'])->name('approvals.index');
+            Route::get('/approvals/{supplyRequest}', [ApproverRequestController::class, 'show'])->name('approvals.show');
+            Route::patch('/approvals/{supplyRequest}/approve', [ApproverRequestController::class, 'approve'])->name('approvals.approve');
+            Route::patch('/approvals/{supplyRequest}/reject', [ApproverRequestController::class, 'reject'])->name('approvals.reject');
+            Route::patch('/approvals/{supplyRequest}/items/{item}', [ApproverRequestController::class, 'updateItem'])->name('approvals.items.update');
+            Route::delete('/approvals/{supplyRequest}/items/{item}', [ApproverRequestController::class, 'removeItem'])->name('approvals.items.destroy');
         });
 });
 

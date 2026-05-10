@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('action');
 
             // Human-readable sentence shown in the timeline UI
-            $table->string('description');
+            $table->text('description');
 
             // Who performed the action (null = system)
             $table->foreignId('performed_by')

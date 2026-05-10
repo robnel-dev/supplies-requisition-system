@@ -52,9 +52,9 @@ const allMenuOptions = [
     },
     // ── Approver ───────────────────────────────────
     {
-        name: 'Approval Queue',
-        href: '#',
-        active: route().current('approvals.queue'),
+        name: 'Approvals',
+        href: route('approver.approvals.index'),
+        active: route().current('approver.approvals.*'),
         icon: CheckSquare,
         roles: ['approver']
     },

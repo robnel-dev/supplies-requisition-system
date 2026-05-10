@@ -27,6 +27,7 @@ class SupplyRequest extends Model
         'hr_admin_released_by',
         'hr_admin_released_at',
         'hr_admin_notes',
+        'rejection_reason',
     ];
 
     protected $casts = [

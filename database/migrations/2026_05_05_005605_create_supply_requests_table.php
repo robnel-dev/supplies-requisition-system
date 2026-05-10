@@ -30,6 +30,7 @@ return new class extends Migration
             $table->foreignId('hr_admin_released_by')->nullable()->constrained('users');
             $table->timestamp('hr_admin_released_at')->nullable();
             $table->text('hr_admin_notes')->nullable();
+            $table->text('rejection_reason')->nullable();
 
             $table->timestamps();
 
