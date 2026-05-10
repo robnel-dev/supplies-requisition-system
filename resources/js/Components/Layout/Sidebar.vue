@@ -28,7 +28,6 @@ const allMenuOptions = [
         icon: LayoutDashboard,
         roles: ['requestor', 'approver', 'hr_admin']
     },
-
     // ── Requestor ─────────────────────────────────
     {
         name: 'Supplies Catalog',
@@ -51,7 +50,6 @@ const allMenuOptions = [
         icon: Archive,
         roles: ['requestor']
     },
-
     // ── Approver ───────────────────────────────────
     {
         name: 'Approval Queue',
@@ -60,7 +58,6 @@ const allMenuOptions = [
         icon: CheckSquare,
         roles: ['approver']
     },
-
     // ── HR Admin ───────────────────────────────────
     {
         name: 'Supplies',
@@ -99,7 +96,6 @@ const filteredNavigation = computed(() =>
         isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full',
         'fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200/60 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col'
     ]">
-
         <!-- Logo / Brand -->
         <div class="flex items-center gap-3 sm:gap-4 h-24 px-4 sm:px-6 border-b border-gray-100 bg-white">
             <svg class="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 drop-shadow-sm" viewBox="0 0 40 40" fill="none"
@@ -137,7 +133,6 @@ const filteredNavigation = computed(() =>
                 <X class="w-6 h-6" />
             </button>
         </div>
-
         <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-2">
             <div class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4 px-3">
@@ -145,7 +140,6 @@ const filteredNavigation = computed(() =>
             </div>
             <NavItem v-for="item in filteredNavigation" :key="item.name" :item="item" />
         </nav>
-
         <!-- User Card -->
         <div class="p-4 border-t border-gray-100 bg-gray-50/50 m-4 rounded-xl">
             <div class="flex items-center gap-3">

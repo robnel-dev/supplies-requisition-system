@@ -1,12 +1,12 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
-import { router, Head , Link } from '@inertiajs/vue3';
+import { router, Head, Link } from '@inertiajs/vue3';
 import debounce from 'lodash-es/debounce';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import AddToCartModal from '@/Components/Requestor/AddToCartModal.vue';
 import PageHeader from '@/Components/PageHeader.vue';
-import { X, Search, Import, RefreshCcw ,} from 'lucide-vue-next';
+import { X, Search, RefreshCcw } from 'lucide-vue-next';
 import CartDrawer from '@/Components/Requestor/CartDrawer.vue';
 import { useToast } from '@/Composables/useToast';
 
@@ -25,8 +25,7 @@ const props = defineProps({
 const search = ref(props.filters.search || '');
 const category = ref(props.filters.category || 'All Categories');
 
-
-// Watch both inputs and debounce the API call
+// Keep filters in the URL so pagination and browser back preserve the current list.
 watch([search, category], debounce(([newSearch, newCategory]) => {
     router.get(route('requestor.catalog.index'), {
         search: newSearch,
@@ -76,10 +75,8 @@ onUnmounted(() => document.removeEventListener('keydown', handleEscape));
 
     <AppLayout>
 
-        <!-- Wrap everything like your working page -->
         <div class="relative">
 
-            <!-- Header -->
             <PageHeader title="Supplies Catalog" description="Browse, search, and add items to your request list." />
 
             <!-- Editing Banner -->
@@ -92,7 +89,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEscape));
                         <span class="font-mono font-extrabold text-amber-900">{{ editingTransactionId }}</span>
                     </p>
                     <p class="text-xs text-amber-600 mt-0.5">
-                        Make your changes and re‑submit when ready.
+                        Make your changes and re-submit when ready.
                     </p>
                 </div>
                 <Link :href="route('requestor.requests.show', cart?.id)"

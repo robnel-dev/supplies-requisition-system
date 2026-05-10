@@ -9,6 +9,7 @@ import {
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import { useToast } from '@/Composables/useToast';
+import { formatRequestDepartment } from '@/Utils/requestDisplay';
 
 const props = defineProps({
     supplyRequest: Object,
@@ -62,19 +63,9 @@ const formatDateShort = (date) => {
     });
 };
 
-const requestDepartmentLabel = computed(() => {
-    const departmentName = props.supplyRequest.department?.name || '-';
+const requestDepartmentLabel = computed(() => formatRequestDepartment(props.supplyRequest));
 
-    if (props.supplyRequest.department?.type !== 'store') {
-        return departmentName;
-    }
-
-    const storeName = props.supplyRequest.user?.external_department_reference?.name
-        || props.supplyRequest.user?.name;
-
-    return storeName ? `${departmentName} - ${storeName}` : departmentName;
-});
-
+// Draft requests are opened from the catalog editor, so their back link returns there.
 const isDraftRequest = computed(() => props.supplyRequest.status === 'draft');
 const backLinkHref = computed(() => isDraftRequest.value
     ? route('requestor.catalog.index')
@@ -106,15 +97,6 @@ const confirmEdit = () => {
             isEditModalOpen.value = false;
             // Server redirects to catalog — no client-side redirect needed
         },
-        /**
-         * FIX: Previously, any error here was caught by onError with a generic
-         * errors object that wasn't properly keyed. The Vue code read
-         * `errors.error` but the server was sending `errors.reopen`.
-         *
-         * Now: RequestController sends withErrors(['reopen' => $message]).
-         * We read errors.reopen here. If it's missing, we fall back to a
-         * safe default message.
-         */
         onError: (errors) => {
             isEditModalOpen.value = false;
             const message = errors.reopen ?? errors.error ?? 'Could not reopen request. Please try again.';
@@ -184,10 +166,6 @@ const confirmEdit = () => {
 
                         <!-- Right -->
                         <div class="flex items-center gap-2">
-                            <!-- <span class="text-[11px] font-semibold uppercase tracking-wider text-white">
-                                Status
-                            </span> -->
-
                             <span :class="[
                                 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border leading-none',
                                 getStatus(supplyRequest.status).color

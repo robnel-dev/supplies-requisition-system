@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Requestor;
 
 use App\Http\Controllers\Controller;
 use App\Models\SupplyRequest;
+use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,9 +13,6 @@ class RequestController extends Controller
 {
     public function __construct(private CartService $cartService) {}
 
-    /**
-     * Active Requests — only pending_approval, approved, released.
-     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -25,11 +23,7 @@ class RequestController extends Controller
                 SupplyRequest::STATUS_APPROVED,
                 SupplyRequest::STATUS_RELEASED,
             ])
-            ->with([
-                'department',
-                'user:id,name,external_department_reference_id',
-                'user.externalDepartmentReference:id,name',
-            ])
+            ->with($this->requestDisplayRelations())
             ->latest('request_date')
             ->paginate(10)
             ->withQueryString();
@@ -39,9 +33,6 @@ class RequestController extends Controller
         ]);
     }
 
-    /**
-     * Archived Requests — rejected, cancelled, archived statuses.
-     */
     public function archived(Request $request)
     {
         $user = $request->user();
@@ -52,11 +43,7 @@ class RequestController extends Controller
                 SupplyRequest::STATUS_CANCELLED,
                 SupplyRequest::STATUS_ARCHIVED,
             ])
-            ->with([
-                'department',
-                'user:id,name,external_department_reference_id',
-                'user.externalDepartmentReference:id,name',
-            ])
+            ->with($this->requestDisplayRelations())
             ->latest('request_date')
             ->paginate(10)
             ->withQueryString();
@@ -66,27 +53,14 @@ class RequestController extends Controller
         ]);
     }
 
-    /**
-     * Show a single active request.
-     */
     public function show(Request $request, SupplyRequest $supplyRequest)
     {
         $user = $request->user();
 
         abort_if($supplyRequest->user_id !== $user->id, 403);
 
-        $supplyRequest->load([
-            'department',
-            'user:id,name,external_department_reference_id',
-            'user.externalDepartmentReference:id,name',
-            'approver',
-            'items',
-            'timelines.performer',
-        ]);
-
-        $departmentApprover = \App\Models\User::where('department_id', $user->department_id)
-            ->where('role', 'approver')
-            ->first();
+        $supplyRequest->load($this->requestDetailRelations());
+        $departmentApprover = $this->departmentApproverFor($user);
 
         return Inertia::render('Requestor/ActiveRequests/Show', [
             'supplyRequest'      => $supplyRequest,
@@ -94,27 +68,14 @@ class RequestController extends Controller
         ]);
     }
 
-    /**
-     * Show a single archived request.
-     */
     public function showArchived(Request $request, SupplyRequest $supplyRequest)
     {
         $user = $request->user();
 
         abort_if($supplyRequest->user_id !== $user->id, 403);
 
-        $supplyRequest->load([
-            'department',
-            'user:id,name,external_department_reference_id',
-            'user.externalDepartmentReference:id,name',
-            'approver',
-            'items',
-            'timelines.performer',
-        ]);
-
-        $departmentApprover = \App\Models\User::where('department_id', $user->department_id)
-            ->where('role', 'approver')
-            ->first();
+        $supplyRequest->load($this->requestDetailRelations());
+        $departmentApprover = $this->departmentApproverFor($user);
 
         return Inertia::render('Requestor/ArchivedRequests/Show', [
             'supplyRequest'      => $supplyRequest,
@@ -122,9 +83,6 @@ class RequestController extends Controller
         ]);
     }
 
-    /**
-     * Cancel a request — only allowed when status is pending_approval.
-     */
     public function cancel(Request $request, SupplyRequest $supplyRequest)
     {
         $user = $request->user();
@@ -160,11 +118,37 @@ class RequestController extends Controller
         try {
             $this->cartService->reopenForEdit($user, $supplyRequest);
         } catch (\Exception $e) {
-            // Return the real error message to the Vue page
             return back()->withErrors(['reopen' => $e->getMessage()]);
         }
 
         return redirect()->route('requestor.catalog.index')
             ->with('success', 'Request reopened for editing. Make your changes and re-submit when ready.');
+    }
+
+    private function requestDisplayRelations(): array
+    {
+        return [
+            'department',
+            // Store request labels need the requestor's store reference, not only the area department.
+            'user:id,name,external_department_reference_id',
+            'user.externalDepartmentReference:id,name',
+        ];
+    }
+
+    private function requestDetailRelations(): array
+    {
+        return [
+            ...$this->requestDisplayRelations(),
+            'approver',
+            'items',
+            'timelines.performer',
+        ];
+    }
+
+    private function departmentApproverFor(User $user): ?User
+    {
+        return User::where('department_id', $user->department_id)
+            ->where('role', 'approver')
+            ->first();
     }
 }

@@ -36,7 +36,7 @@ class HandleInertiaRequests extends Middleware
                     'id' => $request->user()->id,
                     'name' => $request->user()->name,
                     'role' => $request->user()->role,
-                    // Helper flags for Vue templates
+                    // Role flags keep Vue templates simple and avoid repeating role strings.
                     'can' => [
                         'manage_system' => $request->user()->role === 'hr_admin',
                         'approve_requests' => $request->user()->role === 'approver',

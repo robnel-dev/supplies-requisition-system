@@ -37,15 +37,15 @@ class CatalogController extends Controller
             ->filter()
             ->values();
 
-        // Get the existing draft (null if none)
+        // The catalog doubles as the draft editor, so it receives the current draft cart.
         $draft = $cartService->getActiveDraft($request->user());
 
         return Inertia::render('Requestor/Catalog/Index', [
             'supplies'   => $supplies,
             'filters'    => $request->only(['search', 'category']),
             'categories' => $categories,
-            'cart'       => $draft?->load('items'),   
-            'editingTransactionId'  => $draft?->transaction_id,   
+            'cart'       => $draft?->load('items'),
+            'editingTransactionId'  => $draft?->transaction_id,
         ]);
     }
 }

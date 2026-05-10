@@ -221,7 +221,6 @@ const getDisplayDescription = (supply) => {
                         <X class="w-4 h-4 mr-2" /> Clear Filters
                     </button>
 
-                    <!-- FIX: Category list now matches SupplySeeder categories exactly -->
                     <select v-model="categoryFilter"
                         class="block w-full sm:w-52 py-2.5 px-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-brand-blue-darker focus:border-brand-blue-darker sm:text-sm cursor-pointer">
                         <option value="">All Categories</option>
@@ -274,7 +273,6 @@ const getDisplayDescription = (supply) => {
 
                                 <td class="px-6 py-4 font-bold text-brand-blue-dark">{{ supply.item_code }}</td>
 
-                                <!-- FIX: Use getDisplayDescription() instead of supply.display_description -->
                                 <td class="px-6 py-4 font-medium text-gray-900 max-w-xs">
                                     <span class="line-clamp-2 whitespace-normal">{{ getDisplayDescription(supply)
                                     }}</span>
@@ -283,7 +281,6 @@ const getDisplayDescription = (supply) => {
                                 <td class="px-6 py-4 text-gray-600">{{ supply.category }}</td>
                                 <td class="px-6 py-4 text-gray-600 font-medium">{{ supply.unit }}</td>
 
-                                <!-- FIX: Access directly from relationship, not accessor -->
                                 <td class="px-6 py-4 font-bold text-gray-800 text-right">
                                     {{ supply.reference?.stock_quantity ?? '—' }}
                                 </td>

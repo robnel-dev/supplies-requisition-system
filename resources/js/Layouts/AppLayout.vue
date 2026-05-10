@@ -53,7 +53,7 @@ watch(isMobileSidebarOpen, (open) => {
                     class="absolute inset-0 z-[200] flex items-center justify-center bg-white/65 backdrop-blur-sm">
                     <div class="flex flex-col items-center gap-5">
 
-                        <!-- Modern Spinner -->
+                        <!-- Spinner -->
                         <div class="relative flex items-center justify-center w-20 h-20">
 
                             <!-- Glow Background -->

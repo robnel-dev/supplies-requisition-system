@@ -23,6 +23,6 @@ createInertiaApp({
     },
     progress: {
         color: '#159cdb',   // brand-blue
-        showSpinner: false, // We have our own spinner in AppLayout
+        showSpinner: false, // AppLayout owns the page loading overlay.
     },
 });

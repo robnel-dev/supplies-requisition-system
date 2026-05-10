@@ -7,10 +7,9 @@ use App\Models\User;
 
 class SupplyPolicy
 {
-    // A helper method to check if the user is an HR Admin
     private function isHrAdmin(User $user): bool
     {
-        return $user->role === 'hr_admin'; // Adjust string based on exact DB enum
+        return $user->role === 'hr_admin';
     }
 
     public function viewAny(User $user): bool

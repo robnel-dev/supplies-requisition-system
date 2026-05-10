@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Supply;
 use App\Models\SupplyRequestItem;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -40,7 +39,7 @@ class SupplyService
 
     public function deleteSupply(Supply $supply): void
     {
-
+        // Supplies already used in requests are kept for audit/history.
         $isUsedInRequests = SupplyRequestItem::where('supply_id', $supply->id)->exists();
 
         if ($isUsedInRequests) {

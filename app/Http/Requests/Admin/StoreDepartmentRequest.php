@@ -29,6 +29,7 @@ class StoreDepartmentRequest extends FormRequest
         if (($this->input('type') === 'store') && array_key_exists((string) $this->input('area'), DepartmentService::STORE_AREAS)) {
             $area = DepartmentService::STORE_AREAS[$this->input('area')];
 
+            // Store departments are area buckets; the exact store is selected on the user.
             $updates['external_department_reference_id'] = null;
             $updates['code'] = $area['code'];
             $updates['name'] = $area['name'];

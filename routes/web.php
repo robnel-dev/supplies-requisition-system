@@ -1,30 +1,26 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DepartmentController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SupplyController;
-use App\Http\Controllers\Requestor\CatalogController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Requestor\CartController;
+use App\Http\Controllers\Requestor\CatalogController;
 use App\Http\Controllers\Requestor\RequestController;
+use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', fn () => inertia('Dashboard'))->name('dashboard');
 
-    // ─── Shared (all roles) ───────────────────────────────────────────────
-    Route::get('/dashboard', fn() => inertia('Dashboard'))->name('dashboard');
-
-    // ─── HR Admin ────────────────────────────────────────────────────────
     Route::middleware('role:hr_admin')
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-
             Route::resource('departments', DepartmentController::class)
                 ->except(['create', 'show', 'edit']);
 
-            // AJAX endpoint for area → store refs lookup
+            // User creation loads store references after an area department is selected.  AJAX Endpoints
             Route::get('departments/store-refs/{area}', [DepartmentController::class, 'storeRefsByArea'])
                 ->name('departments.store-refs');
 
@@ -81,7 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->prefix('approver')
         ->name('approver.')
         ->group(function () {
-            // Phase 3 routes go here
+            // Approval workflow routes will live here when that module is built.
         });
 });
 

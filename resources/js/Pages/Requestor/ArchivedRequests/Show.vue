@@ -9,6 +9,7 @@ import {
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import { useToast } from '@/Composables/useToast';
+import { formatRequestDepartment } from '@/Utils/requestDisplay';
 
 const props = defineProps({
     supplyRequest: Object,
@@ -61,24 +62,11 @@ const formatDateShort = (date) => {
     });
 };
 
-const requestDepartmentLabel = computed(() => {
-    const departmentName = props.supplyRequest.department?.name || '-';
+const requestDepartmentLabel = computed(() => formatRequestDepartment(props.supplyRequest));
 
-    if (props.supplyRequest.department?.type !== 'store') {
-        return departmentName;
-    }
-
-    const storeName = props.supplyRequest.user?.external_department_reference?.name
-        || props.supplyRequest.user?.name;
-
-    return storeName ? `${departmentName} - ${storeName}` : departmentName;
-});
-
-// Only pending_approval requests can be cancelled or edited
 const canCancel = computed(() => props.supplyRequest.status === 'pending_approval');
 const canEdit = computed(() => props.supplyRequest.status === 'pending_approval');
 
-// ── Cancel Modal ───────────────────────────────────────────────────────────
 const isCancelModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isProcessing = ref(false);
@@ -147,14 +135,12 @@ const confirmEdit = () => {
                     {{ getStatus(supplyRequest.status).label }}
                 </span>
 
-                <!-- ✅ Edit button (only when pending) -->
                 <button v-if="canEdit" @click="isEditModalOpen = true" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-amber-500 rounded-lg border border-amber-600
                            hover:bg-amber-50 hover:text-amber-700 transition-colors">
                     <Pencil class="w-4 h-4" />
                     Edit Request
                 </button>
 
-                <!-- Cancel button (only when pending) -->
                 <button v-if="canCancel" @click="isCancelModalOpen = true" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-red-600 rounded-lg border border-red-700
                            hover:bg-red-50 hover:text-red-700 transition-colors">
                     <Ban class="w-4 h-4" />
@@ -237,7 +223,7 @@ const confirmEdit = () => {
                             </div>
                         </div>
 
-                        <!-- ✅ Reference Numbers Section (always shown, even if empty) -->
+                        <!-- Reference Numbers Section (always shown, even if empty) -->
                         <!-- M3 RO Number -->
                         <div class="flex items-start gap-3">
                             <div class="p-2 rounded-lg mt-0.5" :class="supplyRequest.m3_ro_number

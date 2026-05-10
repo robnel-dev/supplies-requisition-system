@@ -4,6 +4,7 @@ import { ClipboardList, Eye, ChevronRight, Clock, CheckCircle2, XCircle, Package
 import AppLayout from '@/Layouts/AppLayout.vue';
 import PageHeader from '@/Components/PageHeader.vue';
 import Pagination from '@/Components/Pagination.vue';
+import { formatRequestDepartment } from '@/Utils/requestDisplay';
 
 const props = defineProps({
     requests: Object,
@@ -38,17 +39,6 @@ const formatDate = (date) => {
     });
 };
 
-const requestDepartmentLabel = (request) => {
-    const departmentName = request.department?.name || '-';
-
-    if (request.department?.type !== 'store') {
-        return departmentName;
-    }
-
-    const storeName = request.user?.external_department_reference?.name || request.user?.name;
-
-    return storeName ? `${departmentName} - ${storeName}` : departmentName;
-};
 </script>
 
 <template>
@@ -85,7 +75,7 @@ const requestDepartmentLabel = (request) => {
                             </td>
 
                             <td class="px-6 py-4 text-gray-700">
-                                {{ requestDepartmentLabel(req) }}
+                                {{ formatRequestDepartment(req) }}
                             </td>
 
                             <td class="px-6 py-4">

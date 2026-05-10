@@ -9,7 +9,6 @@ use App\Models\SupplyRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class UserService
@@ -39,17 +38,21 @@ class UserService
 
     public function deleteUser(User $user): void
     {
-        // Safety Check 1: Prevent the admin from deleting their own account
+        // Keep the current admin session valid.
         if ($user->id === Auth::id()) {
             throw ValidationException::withMessages([
                 'delete' => 'You cannot delete your own active session.'
             ]);
         }
 
-        // Safety Check 2: Prevent deletion if they have active supply requests
         if (Schema::hasTable('supply_requests')) {
             $hasActiveRequests = SupplyRequest::where('user_id', $user->id)
-                ->whereNotIn('status', ['draft', 'rejected', 'cancelled', 'released'])
+                ->whereNotIn('status', [
+                    SupplyRequest::STATUS_DRAFT,
+                    SupplyRequest::STATUS_REJECTED,
+                    SupplyRequest::STATUS_CANCELLED,
+                    SupplyRequest::STATUS_RELEASED,
+                ])
                 ->exists();
 
             if ($hasActiveRequests) {
@@ -67,6 +70,7 @@ class UserService
         $department = Department::findOrFail($data['department_id']);
         $reference = $this->resolveReference($data['external_department_reference_id'] ?? null);
 
+        // Head Office departments can carry a fixed reference, so the UI does not need to resubmit it.
         if (! $reference && $department->type === 'head_office' && $department->external_department_reference_id) {
             $reference = $department->externalReference;
         }
@@ -75,6 +79,7 @@ class UserService
             ? trim((string) $data['cost_center'])
             : ($reference?->cost_center ?? $department->cost_center);
 
+        // Store accounts are named after the store, not the person managing the account.
         $accountName = $department->type === 'store' && $reference
             ? $reference->name
             : trim((string) $data['name']);

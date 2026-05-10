@@ -12,7 +12,6 @@ class SupplyRequest extends Model
 {
     use HasFactory;
 
-
     protected $fillable = [
         'transaction_id',
         'user_id',
@@ -36,7 +35,6 @@ class SupplyRequest extends Model
         'hr_admin_released_at' => 'datetime',
     ];
 
-    // --- Status constants for clarity ---
     const STATUS_DRAFT            = 'draft';
     const STATUS_PENDING_APPROVAL = 'pending_approval';
     const STATUS_APPROVED         = 'approved';
@@ -44,8 +42,6 @@ class SupplyRequest extends Model
     const STATUS_RELEASED         = 'released';
     const STATUS_CANCELLED        = 'cancelled';
     const STATUS_ARCHIVED         = 'archived';
-
-    // --- Relationships ---
 
     public function user(): BelongsTo
     {

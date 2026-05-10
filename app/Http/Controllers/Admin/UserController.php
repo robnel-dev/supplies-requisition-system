@@ -80,8 +80,6 @@ class UserController extends Controller
     {
         Gate::authorize('delete', $user);
 
-        // This will throw a ValidationException if checks fail, 
-        // automatically redirecting back with errors.
         $this->userService->deleteUser($user);
 
         return redirect()->back()->with('success', 'User deleted successfully.');

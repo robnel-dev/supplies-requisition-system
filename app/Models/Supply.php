@@ -24,14 +24,9 @@ class Supply extends Model
 
     public function reference()
     {
-        // Match local item_code to external item_code
         return $this->hasOne(ExternalSupplyReference::class, 'item_code', 'item_code');
     }
 
-    /**
-     * A supply can appear in many request items.
-     * Used for the "in-use" check before deletion.
-     */
     public function requestItems(): HasMany
     {
         return $this->hasMany(SupplyRequestItem::class);

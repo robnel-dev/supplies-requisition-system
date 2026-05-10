@@ -35,9 +35,6 @@ class User extends Authenticatable
         'is_active' => 'boolean',
     ];
 
-    // RELATIONSHIPS
-
-    // A user belongs to one department
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
@@ -48,7 +45,6 @@ class User extends Authenticatable
         return $this->belongsTo(ExternalDepartmentReference::class);
     }
 
-    // Track who created this user
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

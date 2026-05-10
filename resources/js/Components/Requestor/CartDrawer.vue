@@ -16,7 +16,7 @@ const page = usePage();
 
 const checkoutForm = useForm({});
 
-
+// Inertia exposes validation errors through page props after a failed checkout.
 const checkoutError = computed(() => page.props.errors?.checkout ?? null);
 
 const confirmDialog = ref({
@@ -116,8 +116,6 @@ const handleConfirmAction = () => {
                         </button>
                     </div>
 
-                    <!-- FIX: Checkout error banner shown inside the drawer
-                         so the user sees it in context without the drawer closing. -->
                     <div v-if="checkoutError"
                         class="mx-4 mt-4 flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
                         <AlertCircle class="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -149,7 +147,6 @@ const handleConfirmAction = () => {
 
                                 <!-- Controls -->
                                 <div class="flex items-center gap-3">
-                                    <!-- Quantity Control -->
                                     <div class="flex items-center border rounded-lg overflow-hidden shadow-sm">
                                         <button @click="updateQuantity(item, item.quantity - 1)"
                                             class="px-3 py-1.5 bg-red-500 hover:bg-red-700 text-white text-sm transition">−</button>
@@ -159,7 +156,6 @@ const handleConfirmAction = () => {
                                             class="px-3 py-1.5 bg-green-600 hover:bg-green-800 text-white text-sm transition">+</button>
                                     </div>
 
-                                    <!-- Remove -->
                                     <button @click="promptRemoveItem(item)"
                                         class="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition">
                                         <Trash2 class="w-5 h-5" />

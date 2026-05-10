@@ -5,10 +5,12 @@ namespace App\Services;
 use App\Models\Department;
 use App\Models\ExternalDepartmentReference;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class DepartmentService
 {
+    // Store departments are managed as area buckets; individual stores are selected per user.
     public const STORE_AREAS = [
         'Area1' => ['code' => 'Area 1', 'name' => 'South Luzon'],
         'Area2' => ['code' => 'Area 2', 'name' => 'North Luzon'],
@@ -18,7 +20,7 @@ class DepartmentService
         'Area6' => ['code' => 'Area 6', 'name' => 'Mindanao'],
     ];
 
-    public function getHeadOfficeRefs(): \Illuminate\Support\Collection
+    public function getHeadOfficeRefs(): Collection
     {
         return ExternalDepartmentReference::active()
             ->headOffice()
@@ -45,7 +47,7 @@ class DepartmentService
             ->all();
     }
 
-    public function getStoreRefsByArea(string $area): \Illuminate\Support\Collection
+    public function getStoreRefsByArea(string $area): Collection
     {
         return ExternalDepartmentReference::active()
             ->store()
@@ -94,6 +96,7 @@ class DepartmentService
             ? trim((string) $data['cost_center'])
             : null;
 
+        // Store area records inherit their code/name from the configured area list.
         return [
             'external_department_reference_id' => $reference?->id,
             'code' => $data['type'] === 'store'

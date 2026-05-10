@@ -24,7 +24,6 @@ class SupplyController extends Controller
         $status   = $request->input('status');
         $category = $request->input('category');
 
-
         $supplies = Supply::with('reference')
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
@@ -89,6 +88,7 @@ class SupplyController extends Controller
             return response()->json([]);
         }
 
+        // Autocomplete searches the external item list before a local supply is created.
         $references = ExternalSupplyReference::where('item_code', 'like', "%{$term}%")
             ->orWhere('item_description', 'like', "%{$term}%")
             ->select(['item_code', 'item_description', 'unit_of_measure', 'stock_quantity', 'allocatable_quantity'])
