@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Requestor\CartController;
 use App\Http\Controllers\Requestor\CatalogController;
+use App\Http\Controllers\Approver\ApprovalHistoryController;
 use App\Http\Controllers\Approver\RequestController as ApproverRequestController;
 use App\Http\Controllers\Requestor\RequestController as RequestorRequestController;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +80,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->prefix('approver')
         ->name('approver.')
         ->group(function () {
+            Route::get('/approval-history', [ApprovalHistoryController::class, 'index'])->name('approval-history.index');
+            Route::get('/approval-history/{supplyRequest}', [ApprovalHistoryController::class, 'show'])->name('approval-history.show');
+
             Route::get('/approvals', [ApproverRequestController::class, 'index'])->name('approvals.index');
             Route::get('/approvals/{supplyRequest}', [ApproverRequestController::class, 'show'])->name('approvals.show');
             Route::patch('/approvals/{supplyRequest}/approve', [ApproverRequestController::class, 'approve'])->name('approvals.approve');

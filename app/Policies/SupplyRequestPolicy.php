@@ -31,6 +31,18 @@ class SupplyRequestPolicy
         return $supplyRequest->user_id === $user->id;
     }
 
+    public function viewApprovalHistory(User $user, SupplyRequest $supplyRequest): bool
+    {
+        if ($user->role !== 'approver') {
+            return false;
+        }
+
+        return $supplyRequest->timelines()
+            ->where('performed_by', $user->id)
+            ->whereIn('action', ['approved', 'rejected'])
+            ->exists();
+    }
+
     /**
      * Determine whether the user can create models.
      */

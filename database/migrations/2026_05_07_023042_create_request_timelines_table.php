@@ -28,7 +28,10 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index(['supply_request_id', 'created_at']);
+            $table->index(
+                ['performed_by', 'action', 'supply_request_id', 'created_at'],
+                'request_timelines_history_lookup_index'
+            );
         });
     }
 

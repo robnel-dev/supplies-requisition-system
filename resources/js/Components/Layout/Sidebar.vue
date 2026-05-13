@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
-import { LayoutDashboard, Package, CheckSquare, Users, Building, X, BaggageClaim, ClipboardList, Archive } from 'lucide-vue-next';
+import { LayoutDashboard, Package, CheckSquare, Users, Building, X, BaggageClaim, ClipboardList, Archive, History } from 'lucide-vue-next';
 import NavItem from '@/Components/Layout/NavItem.vue';
 
 const props = defineProps({
@@ -56,6 +56,13 @@ const allMenuOptions = [
         href: route('approver.approvals.index'),
         active: route().current('approver.approvals.*'),
         icon: CheckSquare,
+        roles: ['approver']
+    },
+    {
+        name: 'Approval History',
+        href: route('approver.approval-history.index'),
+        active: route().current('approver.approval-history.*'),
+        icon: History,
         roles: ['approver']
     },
     // ── HR Admin ───────────────────────────────────
