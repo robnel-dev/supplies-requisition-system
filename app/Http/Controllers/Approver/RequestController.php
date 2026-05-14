@@ -70,7 +70,7 @@ class RequestController extends Controller
 
         $this->approvalService->approve($supplyRequest, $request->user());
 
-        return redirect()->route('approver.approvals.index')->with('success', 'Request approved successfully.');
+        return back()->with('success', 'Request approved successfully.');
     }
 
     public function reject(RejectSupplyRequestRequest $request, SupplyRequest $supplyRequest)
@@ -83,7 +83,7 @@ class RequestController extends Controller
             $request->validated('rejection_reason')
         );
 
-        return redirect()->route('approver.approvals.index')->with('success', 'Request rejected.');
+        return  back()->with('success', 'Request rejected.');
     }
 
     public function updateItem(

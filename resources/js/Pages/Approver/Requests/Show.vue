@@ -73,10 +73,13 @@ const canModify = computed(() => props.request.status === 'pending_approval');
 const editingQuantity = ref(null);
 const quantityForm = useForm({ quantity: '' });
 
+// Check if there are unsaved quantity edits
+const hasUnsavedEdits = computed(() => editingQuantity.value !== null && quantityForm.isDirty);
+
 const startEditingQuantity = (item) => {
     editingQuantity.value = item.id;
     quantityForm.clearErrors();
-    quantityForm.quantity = item.quantity;
+    quantityForm.quantity = String(item.quantity ?? '');
 };
 
 const cancelEditing = () => {
@@ -106,8 +109,21 @@ const itemPendingRemoval = ref(null);
 const isRemoveItemModalOpen = computed(() => itemPendingRemoval.value !== null);
 const rejectForm = useForm({ rejection_reason: '' });
 
+const openApproveModal = () => {
+    // Check for unsaved edits first
+    if (hasUnsavedEdits.value) {
+        showToast('Please save or cancel your quantity edits before approving.', 'error');
+        return;
+    }
+    isApproveModalOpen.value = true;
+};
+
 const approveRequest = () => {
     router.patch(route('approver.approvals.approve', props.request.id), {}, {
+        onSuccess: () => {
+            isApproveModalOpen.value = false;
+            showToast('Request approved successfully.');
+        },
         onError: (errors) => {
             isApproveModalOpen.value = false;
             showToast(errors.items ?? errors.status ?? 'Could not approve request.', 'error');
@@ -116,6 +132,12 @@ const approveRequest = () => {
 };
 
 const openRejectModal = () => {
+    // Check for unsaved edits first
+    if (hasUnsavedEdits.value) {
+        showToast('Please save or cancel your quantity edits before rejecting.', 'error');
+        return;
+    }
+
     rejectForm.reset();
     rejectForm.clearErrors();
     isRejectModalOpen.value = true;
@@ -123,6 +145,11 @@ const openRejectModal = () => {
 
 const rejectRequest = () => {
     rejectForm.patch(route('approver.approvals.reject', props.request.id), {
+        onSuccess: () => {
+            isRejectModalOpen.value = false;
+            rejectForm.reset();
+            showToast('Request rejected.');
+        },
         onError: (errors) => {
             showToast(errors.rejection_reason ?? errors.status ?? 'Could not reject request.', 'error');
         },
@@ -334,7 +361,7 @@ const removeItem = () => {
                                         <form v-if="editingQuantity === item.id" @submit.prevent="saveQuantity(item)"
                                             class="flex flex-col items-center gap-1">
                                             <div class="flex items-center justify-center gap-2">
-                                                <TextInput v-model="quantityForm.quantity" type="number" min="1" max="9999"
+                                                <TextInput :model-value="String(quantityForm.quantity)" @update:model-value="(val) => quantityForm.quantity = val" type="number" min="1" max="9999"
                                                     class="w-20 text-center py-1.5" />
                                                 <button type="submit" :disabled="quantityForm.processing"
                                                     class="inline-flex items-center justify-center w-8 h-8 rounded-md text-green-700 hover:bg-green-50 disabled:opacity-50">
@@ -402,7 +429,7 @@ const removeItem = () => {
                             </p>
                         </div>
                         <div class="flex flex-wrap gap-3">
-                            <button @click="isApproveModalOpen = true" class="btn-primary">
+                            <button @click="openApproveModal" class="btn-primary">
                                 <CheckCheck class="w-4 h-4 mr-2" />
                                 Approve
                             </button>
