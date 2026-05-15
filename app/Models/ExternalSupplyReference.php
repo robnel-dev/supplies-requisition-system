@@ -9,7 +9,7 @@ class ExternalSupplyReference extends Model
 {
     use HasFactory;
 
-    // protected $connection = 'external_mysql';
+    protected $connection = 'external_mysql';
 
     protected $fillable = [
         'company_no',

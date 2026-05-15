@@ -1,7 +1,10 @@
 <script setup>
 import { computed } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
-import { LayoutDashboard, Package, CheckSquare, Users, Building, X, BaggageClaim, ClipboardList, Archive, History } from 'lucide-vue-next';
+import {
+    LayoutDashboard, Package, CheckSquare, Users, Building,
+    X, BaggageClaim, ClipboardList, Archive, History
+} from 'lucide-vue-next';
 import NavItem from '@/Components/Layout/NavItem.vue';
 
 const props = defineProps({
@@ -12,86 +15,92 @@ const emit = defineEmits(['close-mobile']);
 const roleLabels = {
     requestor: 'Requestor',
     approver: 'Approver',
-    hr_admin: 'HR Admin'
+    hr_admin: 'HR Admin',
 };
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const userRole = computed(() => user.value?.role ?? 'requestor');
-const formattedUserRole = computed(() => roleLabels[userRole.value] || userRole.value);
+const formattedRole = computed(() => roleLabels[userRole.value] || userRole.value);
+const badges = computed(() => page.props.badgeCounts ?? {});
 
-const allMenuOptions = [
+const allMenuOptions = computed(() => [
     {
         name: 'Dashboard',
         href: route('dashboard'),
         active: route().current('dashboard'),
         icon: LayoutDashboard,
-        roles: ['requestor', 'approver', 'hr_admin']
+        roles: ['requestor', 'approver', 'hr_admin'],
     },
-    // ── Requestor ─────────────────────────────────
+    // ── Requestor ──────────────────────────────────────────────────────────
     {
         name: 'Supplies Catalog',
         href: route('requestor.catalog.index'),
         active: route().current('requestor.catalog.index'),
         icon: Package,
-        roles: ['requestor']
+        roles: ['requestor'],
     },
     {
         name: 'Active Requests',
         href: route('requestor.requests.index'),
         active: route().current('requestor.requests.*') && !route().current('requestor.requests.archived*'),
         icon: ClipboardList,
-        roles: ['requestor']
+        roles: ['requestor'],
+        badge: badges.value?.pending ?? 0,
     },
     {
         name: 'Archived Requests',
         href: route('requestor.requests.archived'),
         active: route().current('requestor.requests.archived*'),
         icon: Archive,
-        roles: ['requestor']
+        roles: ['requestor'],
     },
-    // ── Approver ───────────────────────────────────
+    // ── Approver ───────────────────────────────────────────────────────────
     {
         name: 'Approvals',
         href: route('approver.approvals.index'),
         active: route().current('approver.approvals.*'),
         icon: CheckSquare,
-        roles: ['approver']
+        roles: ['approver'],
+        badge: badges.value?.approvals ?? 0,
     },
     {
         name: 'Approval History',
         href: route('approver.approval-history.index'),
         active: route().current('approver.approval-history.*'),
         icon: History,
-        roles: ['approver']
+        roles: ['approver'],
     },
-    // ── HR Admin ───────────────────────────────────
+    // ── HR Admin ───────────────────────────────────────────────────────────
     {
         name: 'Supplies',
         href: route('admin.supplies.index'),
         active: route().current('admin.supplies.*'),
         icon: BaggageClaim,
-        roles: ['hr_admin']
+        roles: ['hr_admin'],
     },
     {
         name: 'Departments',
         href: route('admin.departments.index'),
         active: route().current('admin.departments.*'),
         icon: Building,
-        roles: ['hr_admin']
+        roles: ['hr_admin'],
     },
     {
         name: 'Users',
         href: route('admin.users.index'),
         active: route().current('admin.users.*'),
         icon: Users,
-        roles: ['hr_admin']
+        roles: ['hr_admin'],
     },
-];
+]);
 
 const filteredNavigation = computed(() =>
-    allMenuOptions.filter(item => item.roles.includes(userRole.value))
+    allMenuOptions.value.filter(item => item.roles.includes(userRole.value))
 );
+
+// Total badge count for the mobile hamburger button indicator
+const totalBadge = computed(() => badges.value?.total ?? 0);
 </script>
 
 <template>
@@ -103,6 +112,7 @@ const filteredNavigation = computed(() =>
         isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full',
         'fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200/60 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col'
     ]">
+
         <!-- Logo / Brand -->
         <div class="flex items-center gap-3 sm:gap-4 h-24 px-4 sm:px-6 border-b border-gray-100 bg-white">
             <svg class="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 drop-shadow-sm" viewBox="0 0 40 40" fill="none"
@@ -140,13 +150,15 @@ const filteredNavigation = computed(() =>
                 <X class="w-6 h-6" />
             </button>
         </div>
+
         <!-- Navigation -->
-        <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-2">
+        <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-1">
             <div class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4 px-3">
                 Main Menu
             </div>
             <NavItem v-for="item in filteredNavigation" :key="item.name" :item="item" />
         </nav>
+
         <!-- User Card -->
         <div class="p-4 border-t border-gray-100 bg-gray-50/50 m-4 rounded-xl">
             <div class="flex items-center gap-3">
@@ -156,7 +168,7 @@ const filteredNavigation = computed(() =>
                 </div>
                 <div class="flex flex-col overflow-hidden">
                     <span class="text-sm font-bold text-gray-900 truncate">{{ user?.name || 'Guest User' }}</span>
-                    <span class="text-xs font-medium text-brand-blue capitalize">{{ formattedUserRole }}</span>
+                    <span class="text-xs font-medium text-brand-blue capitalize">{{ formattedRole }}</span>
                 </div>
             </div>
         </div>
