@@ -64,23 +64,6 @@ class DashboardController extends Controller
             ->pluck('count', 'status')
             ->toArray();
 
-        // Monthly released trend (last 6 months)
-        $monthlyReleased = SupplyRequest::select(
-            DB::raw('YEAR(hr_admin_released_at) as year'),
-            DB::raw('MONTH(hr_admin_released_at) as month'),
-            DB::raw('count(*) as count')
-        )
-            ->where('status', SupplyRequest::STATUS_RELEASED)
-            ->where('hr_admin_released_at', '>=', now()->subMonths(6)->startOfMonth())
-            ->groupBy('year', 'month')
-            ->orderBy('year')
-            ->orderBy('month')
-            ->get()
-            ->map(fn($row) => [
-                'label' => \Carbon\Carbon::createFromDate($row->year, $row->month, 1)->format('M'),
-                'count' => $row->count,
-            ]);
-
         // Recent releases
         $recentReleases = SupplyRequest::with(['user:id,name', 'department:id,name'])
             ->where('status', SupplyRequest::STATUS_RELEASED)
@@ -96,7 +79,6 @@ class DashboardController extends Controller
             'activeDepartments'   => $activeDepartments,
             'totalUsers'          => $totalUsers,
             'requestsByStatus'    => $requestsByStatus,
-            'monthlyReleased'     => $monthlyReleased,
             'recentReleases'      => $recentReleases,
         ];
     }
@@ -141,23 +123,6 @@ class DashboardController extends Controller
             ->limit(5)
             ->get(['id', 'transaction_id', 'user_id', 'request_date', 'status']);
 
-        // Monthly trend (last 6 months)
-        $monthlyTrend = collect(range(5, 0))->map(function ($monthsAgo) use ($user) {
-            $date = now()->subMonths($monthsAgo);
-            $range = [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()];
-            return [
-                'label'    => $date->format('M'),
-                'approved' => SupplyRequest::where('department_id', $user->department_id)
-                    ->where('status', SupplyRequest::STATUS_APPROVED)
-                    ->whereBetween('manager_approved_at', $range)
-                    ->count(),
-                'rejected' => SupplyRequest::where('department_id', $user->department_id)
-                    ->where('status', SupplyRequest::STATUS_REJECTED)
-                    ->whereBetween('updated_at', $range)
-                    ->count(),
-            ];
-        });
-
         return [
             'pending'         => $pending,
             'approvedThisMonth' => $approvedThisMonth,
@@ -165,7 +130,6 @@ class DashboardController extends Controller
             'totalHandled'    => $totalHandled,
             'approvalRate'    => $approvalRate,
             'pendingRequests' => $pendingRequests,
-            'monthlyTrend'    => $monthlyTrend,
         ];
     }
 

@@ -3,8 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import {
     Package, Users, Building2, CheckCircle2, Clock,
-    TrendingUp, ArrowRight, BarChart3, Truck, AlertCircle,
-    ExternalLink, RefreshCw
+    TrendingUp, ArrowRight, Truck, RefreshCw
 } from 'lucide-vue-next';
 import PageHeader from '@/Components/PageHeader.vue';
 
@@ -21,8 +20,6 @@ const props = defineProps({
 
 const s = computed(() => props.dashboardStats);
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
 const statusConfig = {
     draft: { label: 'Draft', color: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' },
     pending_approval: { label: 'Pending Approval', color: 'bg-amber-100 text-amber-700', dot: 'bg-amber-400' },
@@ -35,15 +32,8 @@ const statusConfig = {
 
 const getStatus = (status) => statusConfig[status] ?? { label: status, color: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' };
 
-const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
 
-// Bar chart max value for scaling
-const chartMax = computed(() => {
-    const vals = (s.value.monthlyReleased ?? []).map(m => m.count);
-    return Math.max(...vals, 1);
-});
-
-// Released vs last month delta
 const releaseDelta = computed(() => {
     const curr = s.value.releasedThisMonth ?? 0;
     const prev = s.value.releasedLastMonth ?? 0;
@@ -52,7 +42,6 @@ const releaseDelta = computed(() => {
     return { pct, up: pct >= 0 };
 });
 
-// Requests by status totals for the donut-style breakdown
 const statusBreakdown = computed(() => {
     const map = s.value.requestsByStatus ?? {};
     return Object.entries(map).map(([key, count]) => ({
@@ -67,14 +56,10 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
 
 <template>
     <div class="space-y-6">
-        <!-- ── Page Header ─────────────────────────────────────────────────── -->
         <PageHeader title="Admin Dashboard"
             description="System overview, pending releases, and operational insights." />
 
-        <!-- ── KPI Stat Cards ──────────────────────────────────────────────── -->
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-
-            <!-- Pending Release -->
             <div
                 class="group relative bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-900/5 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
                 <div
@@ -97,7 +82,6 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                 </Link>
             </div>
 
-            <!-- Released This Month -->
             <div
                 class="group relative bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-900/5 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
                 <div
@@ -118,7 +102,6 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                 <p class="text-xs text-gray-400">Last month: {{ s.releasedLastMonth ?? 0 }}</p>
             </div>
 
-            <!-- Active Supplies -->
             <div
                 class="group relative bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-900/5 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
                 <div
@@ -137,7 +120,6 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                 </Link>
             </div>
 
-            <!-- System Users -->
             <div
                 class="group relative bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-900/5 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
                 <div
@@ -153,73 +135,35 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
             </div>
         </div>
 
-        <!-- ── Middle Row: Chart + Status Breakdown ────────────────────────── -->
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-
-            <!-- Monthly Release Bar Chart (spans 3 cols) -->
-            <div class="lg:col-span-3 bg-white rounded-2xl p-6 shadow-sm ring-1 ring-gray-900/5">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 class="text-sm font-bold text-brand-navy">Monthly Releases</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Last 6 months</p>
-                    </div>
-                    <BarChart3 class="w-5 h-5 text-gray-300" />
-                </div>
-
-                <!-- Bar chart -->
-                <div class="flex items-end gap-3 h-36">
-                    <template v-if="(s.monthlyReleased ?? []).length > 0">
-                        <div v-for="(month, i) in s.monthlyReleased" :key="i"
-                            class="flex-1 flex flex-col items-center gap-2">
-                            <span class="text-xs font-bold text-brand-navy">{{ month.count }}</span>
-                            <div class="w-full rounded-t-lg bg-brand-navy/10 relative overflow-hidden"
-                                style="height: 96px;">
-                                <div class="absolute bottom-0 left-0 right-0 bg-brand-navy rounded-t-lg transition-all duration-700 ease-out"
-                                    :style="{ height: `${Math.max(4, (month.count / chartMax) * 96)}px` }" />
-                            </div>
-                            <span class="text-[10px] text-gray-400 font-medium">{{ month.label }}</span>
-                        </div>
-                    </template>
-                    <div v-else class="flex-1 flex items-center justify-center">
-                        <p class="text-sm text-gray-400">No release data yet</p>
-                    </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-gray-900/5">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-sm font-bold text-brand-navy">Requests by Status</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">All time &bull; {{ totalRequests }} total</p>
                 </div>
             </div>
 
-            <!-- Requests by Status (spans 2 cols) -->
-            <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm ring-1 ring-gray-900/5">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 class="text-sm font-bold text-brand-navy">Requests by Status</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">All time · {{ totalRequests }} total</p>
-                    </div>
-                </div>
-
-                <div v-if="statusBreakdown.length > 0" class="space-y-3">
-                    <div v-for="item in statusBreakdown" :key="item.key" class="flex items-center gap-3">
-                        <span :class="['w-2 h-2 rounded-full flex-shrink-0', item.dot]" />
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-xs font-medium text-gray-600 truncate">{{ item.label }}</span>
-                                <span class="text-xs font-bold text-gray-900 ml-2">{{ item.count }}</span>
-                            </div>
-                            <div class="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                                <div class="h-full rounded-full transition-all duration-700" :class="item.dot"
-                                    :style="{ width: `${totalRequests > 0 ? (item.count / totalRequests) * 100 : 0}%` }" />
-                            </div>
+            <div v-if="statusBreakdown.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                <div v-for="item in statusBreakdown" :key="item.key" class="flex items-center gap-3">
+                    <span :class="['w-2 h-2 rounded-full flex-shrink-0', item.dot]" />
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-medium text-gray-600 truncate">{{ item.label }}</span>
+                            <span class="text-xs font-bold text-gray-900 ml-2">{{ item.count }}</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-700" :class="item.dot"
+                                :style="{ width: `${totalRequests > 0 ? (item.count / totalRequests) * 100 : 0}%` }" />
                         </div>
                     </div>
                 </div>
-                <div v-else class="flex items-center justify-center h-32">
-                    <p class="text-sm text-gray-400">No request data yet</p>
-                </div>
+            </div>
+            <div v-else class="flex items-center justify-center h-32">
+                <p class="text-sm text-gray-400">No request data yet</p>
             </div>
         </div>
 
-        <!-- ── Bottom Row: Quick Actions + Recent Releases ─────────────────── -->
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-
-            <!-- Quick Actions -->
             <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm ring-1 ring-gray-900/5">
                 <h3 class="text-sm font-bold text-brand-navy mb-4">Quick Actions</h3>
                 <div class="space-y-2.5">
@@ -230,8 +174,7 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                         </div>
                         <div class="flex-1">
                             <p class="text-sm font-semibold group-hover:text-white text-gray-800">Manage Supplies</p>
-                            <p class="text-xs text-gray-400 group-hover:text-white/60">Add, edit, or deactivate items
-                            </p>
+                            <p class="text-xs text-gray-400 group-hover:text-white/60">Add, edit, or deactivate items</p>
                         </div>
                         <ArrowRight
                             class="w-4 h-4 text-gray-300 group-hover:text-white/60 group-hover:translate-x-0.5 transition-transform" />
@@ -244,8 +187,7 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                         </div>
                         <div class="flex-1">
                             <p class="text-sm font-semibold group-hover:text-white text-gray-800">Departments</p>
-                            <p class="text-xs text-gray-400 group-hover:text-white/60">Manage cost center departments
-                            </p>
+                            <p class="text-xs text-gray-400 group-hover:text-white/60">Manage cost center departments</p>
                         </div>
                         <ArrowRight
                             class="w-4 h-4 text-gray-300 group-hover:text-white/60 group-hover:translate-x-0.5 transition-transform" />
@@ -266,7 +208,6 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                 </div>
             </div>
 
-            <!-- Recent Releases -->
             <div class="lg:col-span-3 bg-white rounded-2xl p-6 shadow-sm ring-1 ring-gray-900/5">
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-sm font-bold text-brand-navy">Recent Releases</h3>
@@ -280,10 +221,10 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                             <Truck class="w-4 h-4 text-green-600" />
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold text-gray-800 truncate">{{ release.transaction_id ?? '—' }}
+                            <p class="text-sm font-semibold text-gray-800 truncate">{{ release.transaction_id ?? '-' }}
                             </p>
                             <p class="text-xs text-gray-400 truncate">
-                                {{ release.user?.name ?? '—' }} &bull; {{ release.department?.name ?? '—' }}
+                                {{ release.user?.name ?? '-' }} &bull; {{ release.department?.name ?? '-' }}
                             </p>
                         </div>
                         <div class="text-right flex-shrink-0">
@@ -299,7 +240,6 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                     </div>
                 </div>
 
-                <!-- Empty state -->
                 <div v-else class="flex flex-col items-center justify-center py-10 text-center">
                     <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
                         <Truck class="w-6 h-6 text-gray-300" />
@@ -310,7 +250,6 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
             </div>
         </div>
 
-        <!-- ── Recent System Activity ──────────────────────────────────────── -->
         <div class="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-gray-900/5">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-sm font-bold text-brand-navy">Recent System Activity</h3>
@@ -325,9 +264,9 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                         <p class="text-sm font-medium text-gray-800 truncate">{{ activity.transaction_id ?? '#' +
                             activity.id }}
                         </p>
-                        <p class="text-xs text-gray-400">{{ activity.user?.name ?? '—' }} &bull; {{
-                            activity.department?.name ??
-                            '—' }}</p>
+                        <p class="text-xs text-gray-400">{{ activity.user?.name ?? '-' }} &bull; {{
+                            activity.department?.name ?? '-'
+                            }}</p>
                     </div>
                     <span
                         :class="['text-[10px] font-semibold px-2 py-1 rounded-full flex-shrink-0', getStatus(activity.status).color]">
