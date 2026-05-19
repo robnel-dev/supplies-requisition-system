@@ -1,13 +1,14 @@
 <?php
 
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\ReleaseController;
 use App\Http\Controllers\Admin\SupplyController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Approver\ApprovalHistoryController;
+use App\Http\Controllers\Approver\RequestController as ApproverRequestController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Requestor\CartController;
 use App\Http\Controllers\Requestor\CatalogController;
-use App\Http\Controllers\Approver\ApprovalHistoryController;
-use App\Http\Controllers\Approver\RequestController as ApproverRequestController;
 use App\Http\Controllers\Requestor\RequestController as RequestorRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->group(function () {
             Route::resource('departments', DepartmentController::class)
                 ->except(['create', 'show', 'edit']);
+
+            Route::get('releases', [ReleaseController::class, 'index'])
+                ->name('releases.index');
+            Route::get('releases/{supplyRequest}', [ReleaseController::class, 'show'])
+                ->name('releases.show');
+            Route::patch('releases/{supplyRequest}', [ReleaseController::class, 'update'])
+                ->name('releases.update');
+            Route::patch('releases/{supplyRequest}/release', [ReleaseController::class, 'release'])
+                ->name('releases.release');
+            Route::patch('releases/{supplyRequest}/reject', [ReleaseController::class, 'reject'])
+                ->name('releases.reject');
+            Route::patch('releases/{supplyRequest}/archive', [ReleaseController::class, 'archive'])
+                ->name('releases.archive');
 
             // User creation loads store references after an area department is selected.  AJAX Endpoints
             Route::get('departments/store-refs/{area}', [DepartmentController::class, 'storeRefsByArea'])
@@ -92,4 +106,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

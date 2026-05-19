@@ -75,7 +75,7 @@ const totalRequests = computed(() => statusBreakdown.value.reduce((sum, r) => su
                 </div>
                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Pending Release</p>
                 <p class="text-3xl font-black text-brand-navy mb-3">{{ s.pendingRelease ?? 0 }}</p>
-                <Link :href="route('admin.supplies.index')"
+                <Link :href="route('admin.releases.index')"
                     class="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors group/link">
                     View queue
                     <ArrowRight class="w-3 h-3 group-hover/link:translate-x-0.5 transition-transform" />

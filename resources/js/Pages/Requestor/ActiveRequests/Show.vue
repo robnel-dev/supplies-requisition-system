@@ -43,6 +43,7 @@ const timelineIcons = {
     reopened: { icon: RefreshCcw, color: 'bg-orange-400', ring: 'ring-orange-100' },
     item_updated: { icon: Edit3, color: 'bg-sky-500', ring: 'ring-sky-100' },
     item_removed: { icon: Trash2, color: 'bg-red-500', ring: 'ring-red-100' },
+    release_details_updated: { icon: FileText, color: 'bg-sky-500', ring: 'ring-sky-100' },
 };
 
 const getTimelineConfig = (action) =>
@@ -312,7 +313,7 @@ const confirmEdit = () => {
                                     <td class="px-5 py-3.5 text-gray-400 font-medium text-xs">{{ i + 1 }}</td>
                                     <td class="px-5 py-3.5">
                                         <span class="font-mono text-xs font-bold text-brand-blue-dark">{{ item.item_code
-                                        }}</span>
+                                            }}</span>
                                     </td>
                                     <td class="px-5 py-3.5 text-gray-700 max-w-xs">
                                         <span class="line-clamp-2">{{ item.item_description || '—' }}</span>

@@ -30,7 +30,7 @@ const statusConfig = {
 
 const getStatus = (status) =>
     statusConfig[status] ?? { label: status, color: 'bg-gray-100 text-gray-600', icon: Clock };
-
+k
 // ── Timeline icon config ───────────────────────────────────────────────────
 const timelineIcons = {
     submitted: { icon: Send, color: 'bg-blue-500', ring: 'ring-blue-100' },
@@ -42,6 +42,7 @@ const timelineIcons = {
     reopened: { icon: RefreshCcw, color: 'bg-orange-400', ring: 'ring-orange-100' },
     item_updated: { icon: Edit3, color: 'bg-sky-500', ring: 'ring-sky-100' },
     item_removed: { icon: Trash2, color: 'bg-red-500', ring: 'ring-red-100' },
+    release_details_updated: { icon: FileText, color: 'bg-sky-500', ring: 'ring-sky-100' },
 };
 
 const getTimelineConfig = (action) =>

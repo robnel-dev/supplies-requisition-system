@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import {
     LayoutDashboard, Package, CheckSquare, Users, Building,
-    X, BaggageClaim, ClipboardList, Archive, History
+    X, BaggageClaim, ClipboardList, Archive, History, Truck
 } from 'lucide-vue-next';
 import NavItem from '@/Components/Layout/NavItem.vue';
 
@@ -72,6 +72,14 @@ const allMenuOptions = computed(() => [
         roles: ['approver'],
     },
     // ── HR Admin ───────────────────────────────────────────────────────────
+    {
+        name: 'Releases',
+        href: route('admin.releases.index'),
+        active: route().current('admin.releases.*'),
+        icon: Truck,
+        roles: ['hr_admin'],
+        badge: badges.value?.pendingRelease ?? 0,
+    },
     {
         name: 'Supplies',
         href: route('admin.supplies.index'),

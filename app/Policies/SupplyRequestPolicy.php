@@ -43,6 +43,25 @@ class SupplyRequestPolicy
             ->exists();
     }
 
+    public function viewReleases(User $user): bool
+    {
+        return $user->role === 'hr_admin';
+    }
+
+    public function viewRelease(User $user, SupplyRequest $supplyRequest): bool
+    {
+        return $user->role === 'hr_admin'
+            && in_array($supplyRequest->status, [
+                SupplyRequest::STATUS_APPROVED,
+                SupplyRequest::STATUS_RELEASED,
+            ], true);
+    }
+
+    public function manageRelease(User $user, SupplyRequest $supplyRequest): bool
+    {
+        return $this->viewRelease($user, $supplyRequest);
+    }
+
     /**
      * Determine whether the user can create models.
      */

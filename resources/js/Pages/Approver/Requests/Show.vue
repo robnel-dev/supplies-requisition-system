@@ -41,6 +41,7 @@ const timelineIcons = {
     reopened: { icon: RefreshCcw, color: 'bg-orange-400', ring: 'ring-orange-100' },
     item_updated: { icon: Edit3, color: 'bg-sky-500', ring: 'ring-sky-100' },
     item_removed: { icon: Trash2, color: 'bg-red-500', ring: 'ring-red-100' },
+    release_details_updated: { icon: FileText, color: 'bg-sky-500', ring: 'ring-sky-100' },
 };
 
 const getStatus = (status) =>
@@ -181,6 +182,7 @@ const removeItem = () => {
 </script>
 
 <template>
+
     <Head :title="`Approval ${request.transaction_id}`" />
 
     <AppLayout>
@@ -225,7 +227,8 @@ const removeItem = () => {
                                 <Hash class="w-4 h-4" />
                             </div>
                             <div>
-                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Transaction ID</p>
+                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Transaction ID
+                                </p>
                                 <p class="text-sm font-bold text-gray-900 font-mono mt-0.5">
                                     {{ request.transaction_id }}
                                 </p>
@@ -261,7 +264,8 @@ const removeItem = () => {
                                 <Building2 class="w-4 h-4" />
                             </div>
                             <div>
-                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Department / Store</p>
+                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Department /
+                                    Store</p>
                                 <p class="text-sm font-semibold text-gray-900 mt-0.5">
                                     {{ requestDepartmentLabel }}
                                 </p>
@@ -273,7 +277,8 @@ const removeItem = () => {
                                 <User class="w-4 h-4" />
                             </div>
                             <div>
-                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Assigned Approver</p>
+                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Assigned
+                                    Approver</p>
                                 <p class="text-sm font-semibold text-gray-900 mt-0.5">
                                     {{ request.approver?.name ?? departmentApprover?.name ?? 'No approver assigned' }}
                                 </p>
@@ -309,7 +314,8 @@ const removeItem = () => {
                         </div>
                     </div>
 
-                    <div v-if="request.rejection_reason" class="mx-6 mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div v-if="request.rejection_reason"
+                        class="mx-6 mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                         <div class="flex items-start gap-3">
                             <AlertTriangle class="w-5 h-5 text-red-600 mt-0.5" />
                             <div>
@@ -361,8 +367,9 @@ const removeItem = () => {
                                         <form v-if="editingQuantity === item.id" @submit.prevent="saveQuantity(item)"
                                             class="flex flex-col items-center gap-1">
                                             <div class="flex items-center justify-center gap-2">
-                                                <TextInput :model-value="String(quantityForm.quantity)" @update:model-value="(val) => quantityForm.quantity = val" type="number" min="1" max="9999"
-                                                    class="w-20 text-center py-1.5" />
+                                                <TextInput :model-value="String(quantityForm.quantity)"
+                                                    @update:model-value="(val) => quantityForm.quantity = val"
+                                                    type="number" min="1" max="9999" class="w-20 text-center py-1.5" />
                                                 <button type="submit" :disabled="quantityForm.processing"
                                                     class="inline-flex items-center justify-center w-8 h-8 rounded-md text-green-700 hover:bg-green-50 disabled:opacity-50">
                                                     <Save class="w-4 h-4" />
@@ -376,7 +383,8 @@ const removeItem = () => {
                                         </form>
                                         <div v-else>
                                             <span class="font-bold text-gray-900">{{ item.quantity }}</span>
-                                            <span v-if="item.original_quantity && item.original_quantity !== item.quantity"
+                                            <span
+                                                v-if="item.original_quantity && item.original_quantity !== item.quantity"
                                                 class="block text-xs text-gray-400">
                                                 was {{ item.original_quantity }}
                                             </span>
@@ -461,7 +469,8 @@ const removeItem = () => {
                                         getTimelineConfig(event.action).color,
                                         getTimelineConfig(event.action).ring,
                                     ]">
-                                        <component :is="getTimelineConfig(event.action).icon" class="w-4 h-4 text-white" />
+                                        <component :is="getTimelineConfig(event.action).icon"
+                                            class="w-4 h-4 text-white" />
                                     </div>
                                     <div class="flex-1 min-w-0 pb-1">
                                         <p class="text-sm font-semibold text-gray-900 leading-snug">
