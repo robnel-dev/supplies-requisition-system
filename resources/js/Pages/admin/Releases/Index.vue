@@ -235,10 +235,10 @@ const archiveRequest = () => {
 
                                     <button type="button" @click="openArchiveModal(req)" :disabled="!canArchive(req)"
                                         :title="canArchive(req) ? 'Archive request' : 'Release and fill M3 RO/DR numbers before archiving'"
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                                         :class="canArchive(req)
-                                            ? 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'
-                                            : 'text-gray-400 bg-gray-50 border-gray-200'">
+                                            ? 'text-white bg-yellow-700 border-yellow-800 hover:bg-yellow-800'
+                                            : 'text-white bg-gray-700 border-gray-800'">
                                         <Archive class="w-3.5 h-3.5" />
                                         Archive
                                     </button>
@@ -278,7 +278,9 @@ const archiveRequest = () => {
                 </div>
                 <div class="flex justify-center gap-4 mt-8">
                     <button @click="closeArchiveModal" class="btn-secondary" :disabled="isArchiving">Cancel</button>
-                    <button @click="archiveRequest" class="btn-primary" :disabled="isArchiving">
+                    <button @click="archiveRequest"
+                        class="inline-flex items-center px-5 py-3 bg-yellow-700 hover:bg-yellow-800 text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:ring-2 focus:ring-yellow-700/40 focus:outline-none whitespace-nowrap disabled:opacity-50"
+                        :disabled="isArchiving">
                         <Archive class="w-4 h-4 mr-2" />
                         {{ isArchiving ? 'Archiving...' : 'Archive' }}
                     </button>

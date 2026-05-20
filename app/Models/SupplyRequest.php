@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\RequestTimeline;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SupplyRequest extends Model
 {
@@ -27,22 +27,31 @@ class SupplyRequest extends Model
         'hr_admin_released_by',
         'hr_admin_released_at',
         'hr_admin_notes',
+        'archived_by',
+        'archived_at',
         'rejection_reason',
     ];
 
     protected $casts = [
-        'request_date'         => 'datetime',
-        'manager_approved_at'  => 'datetime',
+        'request_date' => 'datetime',
+        'manager_approved_at' => 'datetime',
         'hr_admin_released_at' => 'datetime',
+        'archived_at' => 'datetime',
     ];
 
-    const STATUS_DRAFT            = 'draft';
+    const STATUS_DRAFT = 'draft';
+
     const STATUS_PENDING_APPROVAL = 'pending_approval';
-    const STATUS_APPROVED         = 'approved';
-    const STATUS_REJECTED         = 'rejected';
-    const STATUS_RELEASED         = 'released';
-    const STATUS_CANCELLED        = 'cancelled';
-    const STATUS_ARCHIVED         = 'archived';
+
+    const STATUS_APPROVED = 'approved';
+
+    const STATUS_REJECTED = 'rejected';
+
+    const STATUS_RELEASED = 'released';
+
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUS_ARCHIVED = 'archived';
 
     public function user(): BelongsTo
     {
@@ -77,5 +86,20 @@ class SupplyRequest extends Model
     public function hrAdminReleaser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'hr_admin_released_by');
+    }
+
+    public function archiver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
+    public function scopeReleased(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_RELEASED);
+    }
+
+    public function scopeArchived(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_ARCHIVED);
     }
 }

@@ -21,7 +21,7 @@ class ReleaseService
             $lockedRequest = $this->lockRequest($supplyRequest);
 
             $this->ensureHrAdmin($hrAdmin);
-            $this->ensureManageable($lockedRequest);
+            $this->ensureApproved($lockedRequest);
 
             $changed = $this->syncReleaseDetails($lockedRequest, $data);
 
@@ -97,6 +97,8 @@ class ReleaseService
 
             $lockedRequest->update([
                 'status' => SupplyRequest::STATUS_ARCHIVED,
+                'archived_by' => $hrAdmin->id,
+                'archived_at' => now(),
             ]);
 
             $lockedRequest->timelines()->create([
@@ -241,23 +243,11 @@ class ReleaseService
         abort_if($user->role !== 'hr_admin', 403);
     }
 
-    private function ensureManageable(SupplyRequest $supplyRequest): void
-    {
-        if (! in_array($supplyRequest->status, [
-            SupplyRequest::STATUS_APPROVED,
-            SupplyRequest::STATUS_RELEASED,
-        ], true)) {
-            throw ValidationException::withMessages([
-                'status' => 'Only approved or released requests can be managed from Releases.',
-            ]);
-        }
-    }
-
     private function ensureApproved(SupplyRequest $supplyRequest): void
     {
         if ($supplyRequest->status !== SupplyRequest::STATUS_APPROVED) {
             throw ValidationException::withMessages([
-                'status' => 'Only approved requests can be released or rejected.',
+                'status' => 'Only approved requests can be modified, released, or rejected.',
             ]);
         }
     }

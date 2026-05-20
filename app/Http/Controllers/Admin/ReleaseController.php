@@ -35,7 +35,7 @@ class ReleaseController extends Controller
             ],
             'stats' => [
                 'pendingRelease' => SupplyRequest::where('status', SupplyRequest::STATUS_APPROVED)->count(),
-                'released' => SupplyRequest::where('status', SupplyRequest::STATUS_RELEASED)->count(),
+                'released' => SupplyRequest::released()->count(),
             ],
         ]);
     }
@@ -53,7 +53,7 @@ class ReleaseController extends Controller
 
     public function update(UpdateReleaseRequest $request, SupplyRequest $supplyRequest)
     {
-        Gate::authorize('manageRelease', $supplyRequest);
+        Gate::authorize('updateReleaseDetails', $supplyRequest);
 
         $this->releaseService->updateDetails(
             $supplyRequest,
@@ -66,7 +66,7 @@ class ReleaseController extends Controller
 
     public function release(Request $request, SupplyRequest $supplyRequest)
     {
-        Gate::authorize('manageRelease', $supplyRequest);
+        Gate::authorize('releaseRequest', $supplyRequest);
 
         $this->releaseService->release($supplyRequest, $request->user());
 
@@ -75,7 +75,7 @@ class ReleaseController extends Controller
 
     public function reject(RejectReleaseRequest $request, SupplyRequest $supplyRequest)
     {
-        Gate::authorize('manageRelease', $supplyRequest);
+        Gate::authorize('rejectRelease', $supplyRequest);
 
         $this->releaseService->reject(
             $supplyRequest,
@@ -89,7 +89,7 @@ class ReleaseController extends Controller
 
     public function archive(Request $request, SupplyRequest $supplyRequest)
     {
-        Gate::authorize('manageRelease', $supplyRequest);
+        Gate::authorize('archiveRelease', $supplyRequest);
 
         $this->releaseService->archive($supplyRequest, $request->user());
 

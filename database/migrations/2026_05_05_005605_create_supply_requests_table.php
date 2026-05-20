@@ -30,12 +30,17 @@ return new class extends Migration
             $table->foreignId('hr_admin_released_by')->nullable()->constrained('users');
             $table->timestamp('hr_admin_released_at')->nullable();
             $table->text('hr_admin_notes')->nullable();
+
+            $table->foreignId('archived_by')->nullable()->constrained('users');
+            $table->timestamp('archived_at')->nullable();
+
             $table->text('rejection_reason')->nullable();
 
             $table->timestamps();
 
             // Indexes for faster querying
             $table->index(['user_id', 'status', 'transaction_id']);
+            $table->index(['archived_by', 'status', 'archived_at']);
         });
     }
 

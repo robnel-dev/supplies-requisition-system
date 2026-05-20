@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ArchivedRequestController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\ReleaseController;
 use App\Http\Controllers\Admin\SupplyController;
@@ -23,6 +24,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->group(function () {
             Route::resource('departments', DepartmentController::class)
                 ->except(['create', 'show', 'edit']);
+
+            Route::get('archived-requests', [ArchivedRequestController::class, 'index'])
+                ->name('archived.index');
+            Route::get('archived-requests/{supplyRequest}', [ArchivedRequestController::class, 'show'])
+                ->name('archived.show');
 
             Route::get('releases', [ReleaseController::class, 'index'])
                 ->name('releases.index');

@@ -81,6 +81,13 @@ const allMenuOptions = computed(() => [
         badge: badges.value?.pendingRelease ?? 0,
     },
     {
+        name: 'Archived Requests',
+        href: route('admin.archived.index'),
+        active: route().current('admin.archived.*'),
+        icon: Archive,
+        roles: ['hr_admin'],
+    },
+    {
         name: 'Supplies',
         href: route('admin.supplies.index'),
         active: route().current('admin.supplies.*'),

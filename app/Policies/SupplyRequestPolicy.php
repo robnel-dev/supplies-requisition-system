@@ -57,9 +57,38 @@ class SupplyRequestPolicy
             ], true);
     }
 
-    public function manageRelease(User $user, SupplyRequest $supplyRequest): bool
+    public function updateReleaseDetails(User $user, SupplyRequest $supplyRequest): bool
     {
-        return $this->viewRelease($user, $supplyRequest);
+        return $user->role === 'hr_admin'
+            && $supplyRequest->status === SupplyRequest::STATUS_APPROVED;
+    }
+
+    public function releaseRequest(User $user, SupplyRequest $supplyRequest): bool
+    {
+        return $this->updateReleaseDetails($user, $supplyRequest);
+    }
+
+    public function rejectRelease(User $user, SupplyRequest $supplyRequest): bool
+    {
+        return $this->updateReleaseDetails($user, $supplyRequest);
+    }
+
+    public function archiveRelease(User $user, SupplyRequest $supplyRequest): bool
+    {
+        return $user->role === 'hr_admin'
+            && $supplyRequest->status === SupplyRequest::STATUS_RELEASED;
+    }
+
+    public function viewArchivedRequests(User $user): bool
+    {
+        return $user->role === 'hr_admin';
+    }
+
+    public function viewArchivedRequest(User $user, SupplyRequest $supplyRequest): bool
+    {
+        return $user->role === 'hr_admin'
+            && $supplyRequest->status === SupplyRequest::STATUS_ARCHIVED
+            && $supplyRequest->archived_by === $user->id;
     }
 
     /**
@@ -76,7 +105,10 @@ class SupplyRequestPolicy
     public function update(User $user, SupplyRequest $supplyRequest): bool
     {
         if ($user->role === 'hr_admin') {
-            return true;
+            return ! in_array($supplyRequest->status, [
+                SupplyRequest::STATUS_RELEASED,
+                SupplyRequest::STATUS_ARCHIVED,
+            ], true);
         }
 
         if ($user->role === 'approver') {

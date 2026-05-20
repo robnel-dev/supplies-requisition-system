@@ -118,7 +118,7 @@ const editableItems = computed(() => items.value.map((item, index) => ({
     index,
 })));
 const requestDepartmentLabel = computed(() => formatRequestDepartment(props.request));
-const canEditDetails = computed(() => ['approved', 'released'].includes(props.request.status));
+const canEditDetails = computed(() => props.request.status === 'approved');
 const canRelease = computed(() => props.request.status === 'approved');
 const canReject = computed(() => props.request.status === 'approved');
 const canArchive = computed(() =>
@@ -126,6 +126,12 @@ const canArchive = computed(() =>
     && Boolean(props.request.m3_ro_number)
     && Boolean(props.request.m3_dr_number)
 );
+const archiveButtonClass = computed(() => canArchive.value
+    ? 'inline-flex items-center px-5 py-3 bg-yellow-700 hover:bg-yellow-800 text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:ring-2 focus:ring-yellow-700/40 focus:outline-none whitespace-nowrap disabled:opacity-50'
+    : 'inline-flex items-center px-5 py-3 bg-gray-700 text-white text-sm font-bold rounded-lg shadow-md transition-colors focus:outline-none whitespace-nowrap disabled:opacity-60');
+const actionDescription = computed(() => props.request.status === 'released'
+    ? 'This released request is locked and can only be archived.'
+    : 'Save allocation details and reference numbers before releasing.');
 
 const savedItemsReady = computed(() => items.value.every((item) => {
     if (!['budgeted', 'unbudgeted'].includes(item.budget_type)) {
@@ -417,7 +423,7 @@ const archiveRequest = () => {
                                     M3 RO Number
                                 </label>
                                 <TextInput id="m3_ro_number" v-model="fulfillmentForm.m3_ro_number" type="text"
-                                    :readonly="!canEditDetails" class="mt-1 block w-full font-mono"
+                                    :disabled="!canEditDetails" class="mt-1 block w-full font-mono"
                                     :class="!canEditDetails ? 'bg-gray-100 text-gray-500' : ''"
                                     placeholder="Enter M3 RO number" />
                                 <InputError :message="fulfillmentForm.errors.m3_ro_number" class="mt-2" />
@@ -429,7 +435,7 @@ const archiveRequest = () => {
                                     M3 DR Number
                                 </label>
                                 <TextInput id="m3_dr_number" v-model="fulfillmentForm.m3_dr_number" type="text"
-                                    :readonly="!canEditDetails" class="mt-1 block w-full font-mono"
+                                    :disabled="!canEditDetails" class="mt-1 block w-full font-mono"
                                     :class="!canEditDetails ? 'bg-gray-100 text-gray-500' : ''"
                                     placeholder="Enter M3 delivery number" />
                                 <InputError :message="fulfillmentForm.errors.m3_dr_number" class="mt-2" />
@@ -570,11 +576,11 @@ const archiveRequest = () => {
                         <div>
                             <h2 class="text-lg font-black text-gray-900">Request Actions</h2>
                             <p class="text-sm text-gray-500 mt-1">
-                                Save allocation details and reference numbers before releasing.
+                                {{ actionDescription }}
                             </p>
                         </div>
                         <div class="flex flex-wrap gap-3">
-                            <button v-if="canEditDetails" @click="openSaveModal" class="btn-success"
+                            <button v-if="canEditDetails" @click="openSaveModal" class="btn-secondary"
                                 :disabled="fulfillmentForm.processing">
                                 <Save class="w-4 h-4 mr-2" />
                                 Save Changes
@@ -587,7 +593,7 @@ const archiveRequest = () => {
                                 <XCircle class="w-4 h-4 mr-2" />
                                 Reject
                             </button>
-                            <button v-if="request.status === 'released'" @click="openArchiveModal" class="btn-secondary"
+                            <button v-if="request.status === 'released'" @click="openArchiveModal" :class="archiveButtonClass"
                                 :disabled="!canArchive || isProcessingAction">
                                 <Archive class="w-4 h-4 mr-2" />
                                 Archive
@@ -744,7 +750,7 @@ const archiveRequest = () => {
                     <button @click="isArchiveModalOpen = false" class="btn-secondary" :disabled="isProcessingAction">
                         Cancel
                     </button>
-                    <button @click="archiveRequest" class="btn-primary" :disabled="isProcessingAction">
+                    <button @click="archiveRequest" :class="archiveButtonClass" :disabled="isProcessingAction">
                         <Archive class="w-4 h-4 mr-2" />
                         {{ isProcessingAction ? 'Archiving...' : 'Archive' }}
                     </button>
